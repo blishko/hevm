@@ -13,13 +13,8 @@ jobs:
   nix-build:
     strategy:
       matrix:
-        runtime: [ linux-x64, osx-x64, osx-arm64 ]
+        runtime: [ osx-arm64 ]
         include:
-        - runtime: linux-x64
-          os: ubuntu-latest
-
-        - runtime: osx-x64
-          os: macos-13
 
         - runtime: osx-arm64
           os: macos-14
@@ -32,122 +27,8 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: build hevm
         run: nix build .#ci -L
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: hevm-${{ matrix.runtime }}
-          path: result/bin/hevm
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1      
+          #- name: print solc
+          #run: echo "Testing!" && nix shell -c "which solc && file `which solc` && solc --version"
 
-  extra-tests:
-    strategy:
-      matrix:
-       os: [ ubuntu-latest, macos-latest ]
-       include:
-         - os: ubuntu-latest
-         - os: macos-latest
-      fail-fast: false
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      # can't be run in nix build due to network usage
-      - name: run rpc tests
-        run: nix-shell --pure --command "cabal run rpc-tests"
-      # if we run this in nix build we often get killed due to oom in ci
-      - name: run ethereum tests
-        run: nix-shell --pure --command "cabal run ethereum-tests"
-
-  build-windows:
-    name: build (windows-latest)
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: msys2/setup-msys2@v2
-        with:
-          msystem: CLANG64
-          path-type: minimal
-          update: true
-          install: >-
-            base-devel
-            gmp-devel
-            openssl-devel
-            git
-            unzip
-          pacboy: >-
-            cmake:p
-            ninja:p
-            clang:p
-            lld:p
-            autotools:p
-            gmp:p
-            openssl:p
-      - uses: haskell-actions/setup@v2.7.0
-        id: setup
-        with:
-          ghc-version: '9.4.7'
-
-      - name: Extract GHC & Cabal paths
-        run: |
-          HASKELL_PATHS="$(cygpath -u "$GHC_PATH"):$(cygpath -u "$CABAL_PATH")"
-          echo "HASKELL_PATHS=$HASKELL_PATHS" >> "$GITHUB_ENV"
-        env:
-          GHC_PATH: ${{ steps.setup.outputs.ghc-path }}
-          CABAL_PATH: ${{ steps.setup.outputs.cabal-path }}
-
-      - name: build and install c dependencies
-        run: |
-          echo "::group::Installing libsecp256k1"
-          ./.github/scripts/install-libsecp256k1.sh
-          echo "::endgroup::"
-          echo "::group::Installing libff"
-          ./.github/scripts/install-libff.sh
-          echo "::endgroup::"
-      - name: Configure the build
-        run: |
-          export PATH="$HASKELL_PATHS:$PATH"
-          cabal configure --disable-tests --disable-benchmarks --disable-documentation
-          cabal build --dry-run
-          # The last step generates dist-newstyle/cache/plan.json for the cache key.
-
-      - name: Restore cached dependencies
-        uses: actions/cache/restore@v4
-        id: cache
-        env:
-          key: ${{ runner.os }}-ghc-${{ steps.setup.outputs.ghc-version }}-cabal-${{ steps.setup.outputs.cabal-version }}
-        with:
-          path: ${{ steps.setup.outputs.cabal-store }}
-          key: ${{ env.key }}-plan-${{ hashFiles('**/plan.json') }}
-          restore-keys: ${{ env.key }}-
-
-      - name: Install haskell dependencies
-        run: |
-          export PATH="$HASKELL_PATHS:$PATH"
-          cabal build all --only-dependencies
-
-      # Cache dependencies already, so that we do not have to rebuild them should the subsequent steps fail.
-      - name: Save cached dependencies
-        uses: actions/cache/save@v4
-        # Caches are immutable, trying to save with the same key would error.
-        if: ${{ steps.cache.outputs.cache-primary-key != steps.cache.outputs.cache-matched-key }}
-        with:
-          path: ${{ steps.setup.outputs.cabal-store }}
-          key: ${{ steps.cache.outputs.cache-primary-key }}
-
-      - name: build hevm library
-        run: |
-          export PATH="$HASKELL_PATHS:$PATH"
-          cabal build --extra-include-dirs="$HOME/.local/include" --extra-lib-dirs="$HOME/.local/lib" \
-                      --extra-include-dirs="D:/a/_temp/msys64/clang64/include" --extra-lib-dirs="D:/a/_temp/msys64/clang64/lib"
-
-  cabal-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: run cabal check
-        run: nix develop -c cabal check --verbose=3
