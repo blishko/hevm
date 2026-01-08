@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Concrete execution - hevm</title>
+        <title>System architecture - hevm</title>
 
 
         <!-- Custom HTML head -->
@@ -148,7 +148,7 @@
                         <a href="https://github.com/argotorg/hevm" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="hhttps://github.com/argotorg/hevm/edit/main/src/exec.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                        <a href="hhttps://github.com/argotorg/hevm/edit/main/src/architecture.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -182,55 +182,162 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="hevm-exec"><a class="header" href="#hevm-exec"><code>hevm exec</code></a></h1>
-<p>Run an EVM computation using specified parameters.</p>
-<pre><code class="language-plain">Usage: hevm exec [--code ARG] [--code-file ARG] [--project-type ARG] [--create]
-                 [--json-trace] [--address ARG] [--caller ARG] [--origin ARG]
-                 [--coinbase ARG] [--value ARG] [--nonce ARG] [--gas ARG]
-                 [--number ARG] [--timestamp ARG] [--basefee ARG]
-                 [--priority-fee ARG] [--gaslimit ARG] [--gasprice ARG]
-                 [--maxcodesize ARG] [--prev-randao ARG] [--chainid ARG]
-                 [--rpc ARG] [--block ARG] [--ask-smt-iterations ARG]
-                 [--loop-detection-heuristic ARG] [--no-decompose]
-                 [--solver ARG] [--debug] [--calldata ARG] [--trace]
-                 [--verb ARG] [--root ARG] [--assertion-type ARG]
-                 [--solver-threads ARG] [--smttimeout ARG] [--smtdebug]
-                 [--dump-unsolved ARG] [--num-solvers ARG] [--num-cex-fuzz ARG]
-                 [--max-iterations ARG] [--promise-no-reent]
-                 [--max-buf-size ARG] [--max-width ARG] [--max-depth ARG]
-                 [--no-simplify] [--only-deployed]
+                        <h1 id="steppers--interpreters"><a class="header" href="#steppers--interpreters">Steppers &amp; Interpreters</a></h1>
+<p>The core EVM semantics in hevm can be found in <code>EVM.hs</code>. EVM state is contained
+in the <code>VM</code> record, and the <code>exec1</code> function executes a single opcode inside
+the monad <code>type EVM a = State VM a</code>.</p>
+<p>The core semantics are pure, and should information from the outside world be
+required to continue execution (RPC queries or SMT queries),
+execution will halt, and the <code>result</code> field of the VM will be an instance of
+<code>VMFailure (Query _)</code>.</p>
+<p>Multiple steps of EVM execution are orchestrated via interpreters for a meta
+language. Programs in the meta language are called Steppers. The instructions
+in the meta language can be found in <code>Stepper.hs</code>.</p>
+<p>There can potentially be many different interpreters with different features. Currently,
+we provide a concrete and a symbolic interpreter. Interpreters can
+handle Queries in different ways, for example in the symbolic interpreter, both
+sides of a branch point will be explored, while in the concrete interpreter,
+such branching is not permitted.</p>
+<p>Interpreters are parametrized by a <code>Fetcher</code> that can handle RPC and SMT
+queries, and can be instantiated with fetchers that could have different
+fetching strategies (e.g. caching). Interpreters execute Steppers and use their
+Fetcher to handle any Queries that need to be resolved.</p>
+<p>This architecture is very modular and pluggable, and allows the core semantics
+to be shared between different interpreters, as well as the reuse of steppers
+between different interpreters, making it easy to e.g. share the same test
+execution strategy between concrete and symbolic interpreters.</p>
+<pre class="mermaid">graph LR
+    subgraph meta-language
+    A[Stepper]
+    end
+    subgraph interpreters
+    A --&gt; B[Concrete]
+    A --&gt; C[Symbolic]
+    end
+    subgraph fetchers
+    F[Fetch.hs]
+    B --&gt; F
+    C --&gt; F
+    end
+    subgraph EVM Semantics
+    G[EVM.hs]
+    B --&gt; G
+    C --&gt; G
+    end
+</pre>
+<h1 id="expr"><a class="header" href="#expr">Expr</a></h1>
+<p>The symbolic execution features in hevm are built using a custom IR,
+imaginatively named <code>Expr</code>. This is a summarized trace semantics of a given
+EVM program.</p>
+<p>One important principle is that of local context: e.g. each term representing a
+read from a Buf/Storage will always contain a snapshot of the state of the
+buffer/store at the time the read occurred. This ensures that all context
+relevant to a given operation is contained within the term that represents that
+operation, and allows subsequent analysis to be stateless.</p>
+<p>Expressions in this language can have the following types:</p>
+<ul>
+<li><code>End</code>: control flow</li>
+<li><code>Word</code>: a 256 bit word (a stack item)</li>
+<li><code>Byte</code>: a single byte</li>
+<li><code>Buf</code>: a byte array (used for calldata, memory and returndata)</li>
+<li><code>Storage</code>: contract storage</li>
+<li><code>Logs</code>: EVM logs</li>
+</ul>
+<h2 id="control-flow"><a class="header" href="#control-flow">Control Flow</a></h2>
+<p>An EVM program is represented by an <code>[Expr End]</code>, which is a list of all
+possible end states for a program. As an example the following
+two <code>Expr End</code>-s encode a program that branches based on the equality of two symbolic
+words ("a" and "b"), and returns if they are equal and reverts if they are not:</p>
+<pre><code class="language-haskell">[ Success [PEq (Var "a") (Var "b")] ...,
+, Failure [PNeg (PEq (Var "a") (Var "b"))] ...]
 </code></pre>
-<p>Concretely execute a given EVM bytecode with the specified parameters. Minimum
-required flags: either you must provide <code>--code</code> or you must both pass <code>--rpc</code>
-and <code>--address</code>. For a full listing of options, see <code>hevm exec --help</code>.</p>
-<p>If the execution returns an output, it will be written
-to stdout. Exit code indicates whether the execution was successful or
-errored/reverted.</p>
-<h2 id="simple-example-usage"><a class="header" href="#simple-example-usage">Simple example usage</a></h2>
-<pre><code class="language-shell">$ hevm exec --code 0x647175696e6550383480393834f3 --gas 0xff
-"Return: 0x647175696e6550383480393834f3"
+<h2 id="buffers"><a class="header" href="#buffers">Buffers</a></h2>
+<p>Memory, calldata, and returndata are all represented as a Buf. Semantically
+speaking a Buf is a byte array with of size 2^256.</p>
+<p>Bufs have three base constructors:</p>
+<ul>
+<li>AbstractBuf:    all elements are fully abstract values</li>
+<li>ConcreteBuf bs: all elements past (length bs) are zero</li>
+</ul>
+<p>Bufs can be read from with:</p>
+<ul>
+<li>ReadByte idx buf: read the byte at idx from buf</li>
+<li>ReadWord idx buf: read the byte at idx from buf</li>
+</ul>
+<p>Bufs can be written to with:</p>
+<ul>
+<li>WriteByte idx val buf: write val to idx in buf</li>
+<li>WriteWord idx val buf: write val to idx in buf</li>
+<li>CopySlice srcOffset dstOffset size src dst:
+overwrite dstOffset -&gt; dstOffset + size in dst with srcOffset -&gt; srcOffset + size from src</li>
+</ul>
+<p>e.g. the following Buf expression represents an abi encoded call to <code>foo(uint256 a)</code>:</p>
+<pre><code class="language-haskell">(WriteWord (Lit 0x4) (Var "a")
+(WriteByte (Lit 0x3) (LitByte 56)
+(WriteByte (Lit 0x2) (LitByte 189)
+(WriteByte (Lit 0x1) (LitByte 190)
+(WriteByte (Lit 0x0) (LitByte 47)
+(AbstractBuf "txdata")))))
 </code></pre>
-<p>Which says that given the EVM bytecode <code>0x647175696e6550383480393834f3</code>, the Ethereum
-Virtual Machine will put <code>0x647175696e6550383480393834f3</code> in the RETURNDATA.</p>
-<p>To execute a mainnet transaction:</p>
-<pre><code class="language-shell">$ export ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_API_KEY_HERE
-$ export TXHASH=0xd2235b9554e51e8ff5b3de62039d5ab6e591164b593d892e42b2ffe0e3e4e426
-hevm exec --caller $(cast tx $TXHASH from) --address $(cast tx $TXHASH to) \
-    --calldata $(cast tx $TXHASH input) --rpc $ETH_RPC_URL \
-    --block $(($(cast tx $TXHASH blockNumber)-1)) --gas $(cast tx $TXHASH gas)
+<p>This represents calldata of the form:</p>
+<pre><code>-----------------------------------------------------------------------
+| &lt;function selector&gt; | &lt;symbolic word&gt; | arbitrary symbolic data.... |
+-----------------------------------------------------------------------
 </code></pre>
+<p>Note that a Buf expression contains a copy of all historical writes, meaning
+that it is possible to write multiple times to the same location. In this case
+only the topmost write is relevant. This allows us to mix symbolic and concrete
+writes to the same buffer.</p>
+<h2 id="storage"><a class="header" href="#storage">Storage</a></h2>
+<p>Storage expressions are similar, but instead of writing regions of bytes, we
+write a word to a particular key in a given addresses storage. Note that as
+with a Buf, writes can be sequenced on top of concrete, empty and fully
+abstract starting states.</p>
+<p>As with Bufs, Storage expressions contain a full history of all previous writes.</p>
+<p>For example the following expression represents a write of a symbolic word "c"
+to slot 2 for the zero address followed by a write of 1 to the slot at the
+symbolic location "b" for the zero address. These writes are sequenced on top
+of an <code>EmptyStore</code> meaning all other storage locations are held to be 0.</p>
+<pre><code class="language-haskell">(SStore (Lit 0) (Var "b") (Lit 1)
+(SStore (Lit 0) (Lit 2) (Var "c")
+EmptyStore))
+</code></pre>
+<h2 id="logs"><a class="header" href="#logs">Logs</a></h2>
+<p>Logs are also represented as a sequence of writes, but unlike Buf and Storage
+expressions, Log writes are always sequenced on an empty starting point, and
+overwriting is not allowed.</p>
+<h1 id="symbolic-execution"><a class="header" href="#symbolic-execution">Symbolic Execution</a></h1>
+<p>During symbolic execution all possible branches of the program are explored
+symbolically. Reachability analysis is performed at this stage only if needed
+for loop unrolling. This produces an Expr End. As an example consider the
+following program:</p>
+<pre><code class="language-solidity">contract MyContract {
+  mapping(uint =&gt; uint) items;
+  function test(uint val1) public {
+    require(val1 &gt; 10);
+    unchecked {
+      items[4] = val1+1;
+      assert(items[4] &gt; 10);
+    }
+  }
+}
+</code></pre>
+<p>This decompiles into the following Expr End:
+<img src="expr.png" alt="Body frame" /></p>
+<p>For more details, see our research paper on hevm on open access
+<a href="https://link.springer.com/content/pdf/10.1007/978-3-031-65627-9_22.pdf?pdf=inline+link">research
+paper</a>
+as presented at CAV 2024, <a href="https://github.com/msooseth/hevm-presentation/blob/main/HEVM-presentation%20CAV%2026th%20July%202024.pdf">presentation
+here</a></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="equivalence.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="for-hevm-developers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="common-options.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -238,13 +345,10 @@ hevm exec --caller $(cast tx $TXHASH from) --address $(cast tx $TXHASH to) \
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="equivalence.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="for-hevm-developers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="common-options.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>

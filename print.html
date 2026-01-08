@@ -1,17 +1,17 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>hevm</title>
-        <meta name="robots" content="noindex" />
+        <meta name="robots" content="noindex">
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -25,27 +25,42 @@
         <link rel="stylesheet" href="fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="book.css">
 
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
     </head>
     <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
     <div id="body-container">
-        <!-- Provide site root to javascript -->
-        <script>
-            var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
-        </script>
-
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -59,79 +74,68 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
-            html.classList.remove('no-js')
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            html.classList.add("js");
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
-            var sidebar = null;
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
+                sidebar_toggle.checked = false;
             }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item affix "><a href="getting-started.html">Getting Started</a></li><li class="chapter-item affix "><a href="install.html">Quick Installation</a></li><li class="chapter-item affix "><a href="when-to-use.html">When to Use</a></li><li class="chapter-item affix "><li class="part-title">Tutorials</li><li class="chapter-item "><a href="ds-test-tutorial.html">ds-test tutorial</a></li><li class="chapter-item "><a href="equivalence-checking-tutorial.html">Equivalence checking tutorial</a></li><li class="chapter-item affix "><li class="part-title">Reference</li><li class="chapter-item "><a href="test.html">ds-test proving</a></li><li class="chapter-item "><a href="symbolic.html">Symbolic unit execution</a></li><li class="chapter-item "><a href="equivalence.html">Equivalence checking</a></li><li class="chapter-item "><a href="exec.html">Concrete execution</a></li></ol>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
-
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
@@ -142,7 +146,7 @@
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/ethereum/hevm" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/argotorg/hevm" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -151,7 +155,12 @@
 
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -194,9 +203,9 @@ the two bytecodes is the same, or gives inputs where they differ.</p>
 <p>Let's say we have a function that allows transfer of money, but no balance can
 be larger than or equal to 100. Let's see the contract and its associated check:</p>
 <pre><code class="language-solidity">pragma solidity ^0.8.19;
-import &quot;ds-test/test.sol&quot;;
+import "forge-std/Test.sol";
 
-contract MyContract is DSTest {
+contract MyContract is Test {
   mapping (address =&gt; uint) balances;
   function prove_add_value(address recv, uint amt) public {
     require(balances[recv] &lt; 100);
@@ -214,21 +223,21 @@ if <code>hevm</code> can find this bug. In order to do that, we have to prepend 
 function name with <code>prove_</code>, which we did.</p>
 <h3 id="building"><a class="header" href="#building">Building</a></h3>
 <p>We now need a copy of hevm (see
-<a href="https://github.com/ethereum/hevm/releases">releases</a>) and the SMT solver z3,
+<a href="https://github.com/argotorg/hevm/releases">releases</a>) and the SMT solver z3,
 which can be installed e.g. with <code>apt-get</code> on ubuntu/debian or <code>homebrew</code> on Mac,
 and a copy of <a href="https://getfoundry.sh/">Foundry</a>:</p>
 <pre><code class="language-shell">$ sudo apt-get install z3  # install z3
 $ curl -L https://foundry.paradigm.xyz | bash # install foundryup
 $ foundryup # install forge and other foundry binaries
 $ mkdir mytest &amp;&amp; cd mytest
-$ wget https://github.com/ethereum/hevm/releases/download/release/0.53.0/hevm-x86_64-linux
+$ wget https://github.com/argotorg/hevm/releases/download/release/0.55.1/hevm-x86_64-linux
 $ chmod +x ./hevm-x86_64-linux
 $ forge init .
 $ cat &lt;&lt;EOF &gt; src/contract.sol
 pragma solidity ^0.8.19;
-import &quot;ds-test/test.sol&quot;;
+import "forge-std/Test.sol";
 
-contract MyContract is DSTest {
+contract MyContract is Test {
   mapping (address =&gt; uint) balances;
   function prove_add_value(address recv, uint amt) public {
     require(balances[recv] &lt; 100);
@@ -240,7 +249,7 @@ contract MyContract is DSTest {
   }
 }
 EOF
-$ forge build
+$ forge build --ast
 [⠊] Compiling...
 [⠒] Compiling 1 files with 0.8.19
 [⠢] Solc 0.8.19 finished in 14.27ms
@@ -269,7 +278,7 @@ should now say:</p>
   }
 </code></pre>
 <p>Let's re-build with forge and check with hevm once again:</p>
-<pre><code class="language-shell">$ forge build
+<pre><code class="language-shell">$ forge build --ast
 [⠰] Compiling...
 [⠔] Compiling 1 files with 0.8.19
 [⠒] Solc 0.8.19 finished in 985.32ms
@@ -288,11 +297,11 @@ test and so this omission is not detected.</p>
 <h2 id="capabilities"><a class="header" href="#capabilities">Capabilities</a></h2>
 <ul>
 <li>Symbolic execution of solidity tests written using
-<a href="https://github.com/dapphub/ds-test/"><code>ds-test</code></a> (a.k.a &quot;foundry tests&quot;).
+<a href="https://github.com/dapphub/ds-test/"><code>ds-test</code></a> (a.k.a "foundry tests").
 This allows one to find <em>all</em> potential failure modes of a function.</li>
 <li>Fetch remote state via RPC so your tests can be rooted in the real-world,
 calling out to other, existing contracts, with existing state and already
-deloyed bytecode.</li>
+deployed bytecode.</li>
 <li>Prove equivalence of two different bytecode objects such as two functions or
 even entire contracts.</li>
 </ul>
@@ -307,30 +316,34 @@ e.g. via</p>
 <pre><code>curl -L https://foundry.paradigm.xyz | bash
 </code></pre>
 <p>Next, you need to have either <a href="https://github.com/Z3Prover/z3">Z3</a> or
-<a href="https://cvc5.github.io/">CVC5</a> installed. Often, these can be installed via:</p>
-<pre><code>$ sudo apt-get install z3
+<a href="https://cvc5.github.io/">cvc5</a> installed. Often, these can be installed via:</p>
+<pre><code>$ sudo apt-get install z3 cvc5
 </code></pre>
-<p>or similar. If you installed CVC5 instead, you will need to pass the flag
-&quot;--solver cvc5&quot; to &quot;hevm test&quot; later.</p>
-<p>Finally, download the static hevm binary from <a href="https://github.com/ethereum/hevm/releases/">the github
+<p>or similar for Linux. For Mac:</p>
+<pre><code>brew install z3
+brew install --cask cvc5
+</code></pre>
+<p>If you installed cvc5 and want to use it, you will need to pass the flag
+"--solver cvc5". The z3 solver is default, but cvc5 is often faster, so you may
+want to try it out.</p>
+<p>Finally, download the static hevm binary from <a href="https://github.com/argotorg/hevm/releases/">the GitHub
 repository</a> for your platform and
-put it in your path so it can be executed via typing &quot;hevm&quot;.</p>
+put it in your path so it can be executed via typing "hevm".</p>
 <h1 id="how-to-check-if-it-works"><a class="header" href="#how-to-check-if-it-works">How to Check if it Works</a></h1>
-<p>Once you have the above, you can go to the root of your forge-based project
-and build it:</p>
-<pre><code>$ forge build
+<p>Once you have the above, and you have forge installed and a forge-based project
+at hand, re-build it with <code>--ast</code> and run the tests with hevm:</p>
+<pre><code>$ forge clean
+$ forge build --ast
 [⠒] Compiling...
 [⠆] Compiling 34 files with 0.8.19
 [⠔] Solc 0.8.19 finished in 2.12s
 Compiler run successful.
-</code></pre>
-<p>Then run hevm on all functions prefixed with <code>prove_</code> as such:</p>
-<pre><code>$ hevm test
+$ hevm test
 Checking 1 function(s) in contract src/contract-pass.sol:MyContract
 [RUNNING] prove_pass(address,uint256)
    [PASS] prove_pass(address,uint256)
 </code></pre>
-<p>See <a href="./ds-test-tutorial.html">ds-test Tutorial</a> for details.</p>
+<p>See <a href="./std-test-tutorial.html">Forge std-test tutorial</a> for details.</p>
 <p>Note that Foundry provides the solidity compiler, hence there is no need to
 install solidity separately.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="when-to-use-symbolic-execution"><a class="header" href="#when-to-use-symbolic-execution">When to use Symbolic Execution</a></h1>
@@ -338,7 +351,7 @@ install solidity separately.</p>
 assets</a> due to bugs. While fuzz testing can
 help find potential issues with digital contracts, it is a tool that can only
 execute the program concretely, one execution at a time. In contrast, Symbolic
-Execution can execute all potential values in a decision path &quot;in one go&quot;,
+Execution can execute all potential values in a decision path "in one go",
 creating a symbolic expression out of a path, and checking whether it
 can trigger a fault. Hence, Symbolic Execution tends to be more efficient at
 finding bugs than fuzzing when the bugs are rare, or explicitly (i.e.
@@ -356,9 +369,9 @@ often e.g. that the system does not throw a segmentation fault. For EVM
 bytecode, postconditions need to be explicit. Let's see an example:</p>
 <pre><code class="language-solidity">// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-import &quot;ds-test/test.sol&quot;;
+import "forge-std/Test.sol";
 
-contract MyContract is DSTest {
+contract MyContract is Test {
   uint balance;
   function test_overflow(uint amt) public {
     unchecked {
@@ -376,9 +389,9 @@ hidden (e.g. by a malicious developer), or that have a complicated code path
 towards them. Let's see a simple one:</p>
 <pre><code class="language-solidity">// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-import &quot;ds-test/test.sol&quot;;
+import "forge-std/Test.sol";
 
-contract MyContract is DSTest {
+contract MyContract is Test {
   uint balance;
   function prove_multiply(uint amt, uint amt2) public {
     require(amt != 1);
@@ -455,7 +468,7 @@ test-cases that they can report on, if they can find a way to violate them. Henc
 it may be valuable to run static analysis tools alongside symbolic execution tools
 such as hevm.</p>
 <p>Finally,
-<a href="https://github.com/ethereum/solidity/blob/develop/docs/smtchecker.rst">SMTChecker</a>
+<a href="https://github.com/argotorg/solidity/blob/develop/docs/smtchecker.rst">SMTChecker</a>
 may also be interesting to run alongside hevm. SMTChecker is very different
 from both approaches detailed above. While SMTChecker is capable of reliably
 finding both reentrancy and loop-related bugs, the tools above can only do so
@@ -471,77 +484,260 @@ positives or may even not discover them at all.</p>
 <tr><td><strong>Mythril</strong></td><td>Static code analysis</td><td>Partial symbolic execution</td><td>Combines static code analysis with symbolic execution for result validation. Like Oyente and Slither, can report false positives.</td></tr>
 <tr><td><strong>SMTChecker</strong></td><td>Different from both hevm and static code analysis tools</td><td>SMT solving</td><td>Capable of finding reentrancy and loop-related bugs reliably, which other tools might miss or report incompletely. Offers a distinct approach from symbolic execution.</td></tr>
 </tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><h1 id="ds-test-tutorial"><a class="header" href="#ds-test-tutorial">ds-test Tutorial</a></h1>
-<p>Test cases must be prepended with <code>prove_</code> and the testing contract must
-inherit from <code>Test</code> from <a href="https://book.getfoundry.sh/forge/forge-std">Forge's standard test
-library</a>. First, import Test:
-<code>import {Test} from &quot;forge-std/Test.sol&quot;;</code> and then inherit from it via <code>... is Test</code>. This allows hevm to discover the test cases it needs to run. Like so:</p>
-<pre><code class="language-solidity">pragma solidity ^0.8.19;
-import {Test} from &quot;forge-std/Test.sol&quot;;
-contract BadVaultTest is Test {
-  function prove_mytest() {
-  // environment setup, preconditions
-  // call(s) to test
-  // postcondition checks
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="limitations-and-workarounds"><a class="header" href="#limitations-and-workarounds">Limitations and Workarounds</a></h1>
+<p>Symbolic execution in general, and hevm in particular, have a number of known
+limitations. Many of these limitations can be worked around without too much
+effort. This document describes some of the most common limitations and
+workarounds.</p>
+<h2 id="loops-and-recursion"><a class="header" href="#loops-and-recursion">Loops and recursion</a></h2>
+<p>The most important issue related to symbolic execution is to do with loops and
+recursion. For example, the following code is hard to deal with in a symbolic
+context:</p>
+<pre><code class="language-solidity">function loop(uint n) {
+  for(uint i = 0; i &lt; n; i++) {
+    mystate[i]++;
   }
 }
 </code></pre>
-<p>Once you have written such a test case, you need to compile with <code>forge build</code>
+<p>When such a function is called, and <code>n</code> is a symbolic parameter (e.g. parameter
+to a function <code>prove_</code>, such as <code>prove_correct(uint n)</code>), hevm would need to
+create a new execution path for each potential value of <code>n</code>, which can be very
+large. The same principle applies to recursion, where the depth of the
+recursion may be unbounded or bounded only by a potentially very large number.</p>
+<p>Hence, hevm only explores loops and recursions up to fixed depth <code>k</code>, a
+parameter that can be adjusted from the command line via the <code>--max-iterations k</code> parameter. Whenever the limit is hit, hevm warns of the incomplete exploration:</p>
+<pre><code class="language-shell">WARNING: hevm was only able to partially explore the call prefix 0x[...] due to the following issue(s):
+  - Max Iterations Reached in contract: 0x[...] pc: [...]
+</code></pre>
+<p>In general, the workaround suggested is to try to write code without loops, if
+possible, or to have a limit on the number of iterations. For example, by using
+<code>max(k,n)</code> instead of <code>n</code> in the loop condition, where <code>k</code> is a fixed number.
+Unbounded loops are a problem for digital contracts, as they may be forced by
+an attacker to exhaust gas, thereby potentially e.g. deadlocking the contract.
+This can lock in (large) funds, which can be a very serious issue. Hence,
+limiting loop iterations is a good practice in general -- not only for symbolic
+execution.</p>
+<p><strong>Best Practices</strong>:</p>
+<ul>
+<li>Try to write code without loops, if possible.</li>
+<li>Use <code>max(k,n)</code> instead of <code>n</code> in the loop condition, where <code>k</code> is a fixed number.</li>
+<li>Avoid unbounded loops to prevent potential gas exhaustion attacks</li>
+</ul>
+<h2 id="gas-costs"><a class="header" href="#gas-costs">Gas costs</a></h2>
+<p>Gas is hard to symbolically track, due to certain opcodes, such as SLOAD,
+having different cost depending on the parameters to the opcode. Many symbolic
+execution systems, including hevm, solve this by not fully tracking gas.
+This means that hevm may report that an assertion
+failure can occur through a particular execution trace, but that
+trace would cost more to execute than the allowable gas limit.</p>
+<p>In general, it is possible to check whether the issue can be hit by running the
+hevm-provided counterexample in a concrete execution setting, thereby filtering
+out false positives. However, it is strongly advisable to fix potential issues
+that are only guarded due to gas exhaustion, as they may become exploitable in
+the future, when gas costs change.</p>
+<p><strong>Best Practices</strong>:</p>
+<ul>
+<li>Don't rely on gas exhaustion as a security mechanism.</li>
+<li>Check potential issues by running the hevm-provided counterexample in a
+concrete execution setting.</li>
+</ul>
+<h2 id="symbolic-arguments-to-certain-evm-opcodes"><a class="header" href="#symbolic-arguments-to-certain-evm-opcodes">Symbolic arguments to certain EVM opcodes</a></h2>
+<p>When a symbolic argument is passed to an EVM opcode that hevm cannot deal with
+symbolically, an error is raised. There are number of such EVM opcodes, for
+example JUMP, JUMPI, CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2,
+SELFDESTRUCT, etc. If any of these are called with an argument that is
+symbolic, hevm raises an error, such as:</p>
+<pre><code class="language-shell">WARNING: hevm was only able to partially explore the call prefix 0x[...] due to the following issue(s):
+  - Attempting to transfer eth to a symbolic address that is not present in the state
+</code></pre>
+<p>There is no single workaround for this class of issues, as it depends on the
+specific circumstances of the code. In general, we suggest trying to concretize
+the call to the code, such that only what is truly needed to be symbolic is
+left symbolic. For example, you may be able to force partial concrete execution via
+<code>require()</code> statements, thereby concretizing the potential symbolic value. Similarly,
+dynamically computed JUMP destinations can be avoided via pre-computed jump tables, etc.</p>
+<p><strong>Best Practices</strong>:</p>
+<ul>
+<li>Use <code>require()</code> statements to concretize symbolic values</li>
+<li>Avoid dynamically computed jumps -- use pre-computed jump-tables, if neccesary</li>
+</ul>
+<h2 id="jumping-into-symbolic-code"><a class="header" href="#jumping-into-symbolic-code">Jumping into symbolic code</a></h2>
+<p>Jumping into symbolic code is not supported by hevm. This can happen when, e.g.
+a function creates a contract based on a symbolic value, and then jumps into
+the code of that contract. In these cases, you will get a warning like the
+following:</p>
+<pre><code class="language-shell">WARNING: hevm was only able to partially explore the call prefix 0x[...] due to the following issue(s):
+  - Encountered a jump into a potentially symbolic code region while executing initcode. pc: [...] jump dst: [...]
+</code></pre>
+<p>For these cases, we suggest concretizing the call that creates the contract,
+such that the bytecode created and later jumped to, is not symbolic.</p>
+<h2 id="setting-block-number"><a class="header" href="#setting-block-number">Setting block number</a></h2>
+<p>The <a href="https://book.getfoundry.sh/cheatcodes/roll?highlight=roll#roll">roll(uint256)
+cheatcode</a> can
+be used to set the block number in the current EVM state. However, it does not
+alter the block number that the RPC calls use. For that, one must use the
+<code>--number</code> command line option. Hence, it is not possible to dynamically change
+what block number the RPC calls fetch from, other than by restarting the hevm
+process with a different block number.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="completeness-warnings-and-false-positives"><a class="header" href="#completeness-warnings-and-false-positives">Completeness Warnings and False Positives</a></h1>
+<p>hevm attempts to give no false negatives without warnings, but can sometimes
+give false positives. Whenever hevm could not prove the absence of negatives,
+it prints a warning <code>[WARN]</code>. While hevm attempts to give no false negatives,
+it can, in rare occasions, give false positives, indicated by <code>[not reproducible]</code>. This section explains why these happen, and how to interpret
+them.</p>
+<h2 id="completeness-warnings"><a class="header" href="#completeness-warnings">Completeness Warnings</a></h2>
+<p>hevm gives a completeness warning to indicate that it had to give up
+exploration during symbolic execution. Hence, it may be possible that some
+assertion violations can be violated, but hevm could not explore that path.
+Hence, this warning is an indication that there may be errors in the contract,
+but hevm was not able to find them.</p>
+<p>These warnings are prefixed with <code>[WARN]</code> and are collated together with the text
+<code>hevm was only able to partially explore XYZ due to:</code> and can be either:</p>
+<ul>
+<li><strong>error(s)</strong> such as SMT solver internal errors, or SMT translation
+issues related to dynamic datastructures</li>
+<li><strong>unknown result(s)</strong> from the SMT solver, such as timeouts</li>
+<li><strong>partial executions</strong> such as missing implementation of a precompile,
+cheatcode, etc.</li>
+</ul>
+<p>Partial executions are the most common cause of incompleteness. They can be
+due to:</p>
+<ul>
+<li><strong>Unexpected symbolic argument to an opcode</strong> For example, if a symbolic address is given to
+a <code>CALL</code> instruction, hevm will not be able to determine which contract is being called,
+and hence will not be able to explore that path. This can be alleviated with the option
+<code>--only-deployed</code>, which will restrict the analysis to only the contracts that are deployed
+during the <code>setUp()</code> phase of the test.</li>
+<li><strong>Maximum iterations reached</strong> This happens when we have too many iterations in a loop,
+and we have reached the maximum number of iterations allowed. This can be configured
+with the <code>--max-iterations</code> option.</li>
+<li><strong>Jump into symbolic code</strong> This can happen in case the contract generates code at runtime,
+deploys it, and jumps into it. hevm does not support this, and will give up exploration.</li>
+<li><strong>Branch too deep</strong> This happens when the call depth has been limited via the <code>--max-depth</code>
+option, and hevm has reached that limit during exploration.</li>
+<li><strong>Cheat code missing</strong> This happens when a cheatcode is called that is not yet implemented
+in hevm.</li>
+</ul>
+<h2 id="false-positives"><a class="header" href="#false-positives">False Positives</a></h2>
+<p>hevm attempts to validate every counterexample it can find. In case the
+counterexample validates, it marks it via <code>[validated]</code>. In case there is an
+error in validating the counterexample, it marks it via <code>[error attempting to reproduce...]</code>. When the counterexample cannot be validated, it marks it via
+<code>[not reproducible]</code>.</p>
+<p>False positives can happen in two different scenarios. Firstly, in some cases,
+hevm attempts to overapproximate the behaviour of the EVM, so that it doesn't
+have to give up exploration. However, this overapproximation can lead to
+behaviour that is not actually possible in the real world. This kind of
+overapproximation happens mostly with a STATICCALL to an unknown address.</p>
+<p>Secondly, false positives can happen, because hevm approximates the Keccak
+(i.e. SHA3) hash function via a so-called uninterpreted function. This means
+that hevm does not precisely model the Keccak function, but instead treats it
+as a black box. This can lead to Keccak hash pairs that are not possible in the
+real world.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="forge-std-test-usage-tutorial"><a class="header" href="#forge-std-test-usage-tutorial">Forge std-test Usage Tutorial</a></h1>
+<p>First, install foundry:</p>
+<pre><code class="language-plain">curl -L https://foundry.paradigm.xyz | bash
+foundryup
+</code></pre>
+<p>Then set up a forge project with <code>forge init</code>:</p>
+<pre><code class="language-plain">mkdir myproject
+cd myproject
+forge init --no-git .
+</code></pre>
+<p>Now, let's create a file <code>src/example-test.sol</code> with some simple code.
+Test cases must be prepended with <code>prove_</code> and the testing contract must
+inherit from <code>Test</code> from <a href="https://book.getfoundry.sh/forge/forge-std">Forge's standard test
+library</a>. So let's import Test:
+<code>import {Test} from "forge-std/Test.sol";</code> and then inherit from it via
+<code> is Test</code>. This allows hevm to discover the test cases it needs
+to run:</p>
+<pre><code class="language-solidity">pragma solidity ^0.8.19;
+import {Test} from "forge-std/Test.sol";
+contract Example is Test {
+  function prove_mytest() public {
+  // (1) environment setup, preconditions
+  // (2) calls to test
+  // (3) postcondition checks
+  }
+}
+</code></pre>
+<p>Once you have written such a test case, you need to compile with <code>forge build --ast</code>
 (see <a href="https://book.getfoundry.sh/forge/tests">forge documentation</a> for more
 details) and then:</p>
-<pre><code>$ hevm test
-Checking 1 function(s) in contract src/badvault-test.sol:BadVault
+<pre><code class="language-plain">$ forge build --ast
+$ hevm test --match "prove_mytest"
+Checking 1 function(s) in contract src/example-test.sol:Example
 [RUNNING] prove_mytest(uint256)
    [PASS] prove_mytest(uint256)
 </code></pre>
 <p>Here, hevm discovered the test case, and automatically checked it for
-violations.</p>
-<h2 id="setting-up-tests"><a class="header" href="#setting-up-tests">Setting Up Tests</a></h2>
+violations. If <code>hevm</code> is not in the global path, you can run hevm
+from wherever it is installed, and specify the root of the foundry project,
+like so:</p>
+<pre><code class="language-plain">./hevm test --root /path/to/foundry/project
+</code></pre>
+<p>The <code>--match ...</code> options is used to specify which test case(s) to run,
+and it accepts a regular expression.</p>
+<h2 id="setting-up-test-context"><a class="header" href="#setting-up-test-context">Setting Up Test Context</a></h2>
 <p>Tests usually need to set up the environment in a particular way, such
 as contract address, storage, etc. This can be done via Cheat Codes that
-can change the address of the caller, set block number, etc. See <a href="ds-test-tutorial.html#supported-cheat-codes">Cheat
+can change the address of the caller, set block number, etc. See <a href="std-test-tutorial.html#supported-cheat-codes">Cheat
 Codes</a> below for a range of cheat codes supported. Cheat Codes
 are a standard method used by other tools, such as
 <a href="https://book.getfoundry.sh/">Foundry</a>, so you should be able to re-use your
-existing setup. An example setup could be:</p>
+existing setup. An example setup could be put into <code>src/setup-test.sol</code>:</p>
 <pre><code class="language-solidity">pragma solidity ^0.8.19;
-import {Test} from &quot;forge-std/Test.sol&quot;;
-contract BadVaultTest is Test {
-    MyVault vault;
+import {Test} from "forge-std/Test.sol";
 
-    function setUp() public {
-        // Set up environment
-        vault = new BadVault();
-
-        address user1 = address(1);
-        vm.deal(user1, 1 ether);
-        vm.prank(user1);
-        vault.deposit{value: 1 ether}();
-
-        address user2 = address(2);
-        vm.deal(user2, 1 ether);
-        vm.prank(user2);
-        vault.deposit{value: 1 ether}();
-
-        address attacker = address(42);
-        vm.prank(attacker);
-        // call(s) to test
-        // postcondition checks
+contract MyVault {
+    mapping(address =&gt; uint256) public balance;
+    function deposit() external payable {
+        balance[msg.sender] += msg.value;
     }
 }
+contract MySetupTest is Test {
+    MyVault vault;
+    function setUp() public {
+        vault = new MyVault();
+
+        address user1 = address(42);
+        vm.deal(user1, 7 ether);
+        vm.prank(user1);
+        vault.deposit{value: 7 ether}();
+    }
+
+    function prove_correct(uint8 amt) public {
+        address k = address(42);
+        uint pre = vault.balance(k);
+        assert(pre == 7 ether);
+        vm.prank(k);
+        vault.deposit{value: amt}();
+        assert(vault.balance(k) == pre + amt);
+      }
+}
 </code></pre>
-<p>The postconditions should check the state of the contract after the call(s) are
-complete. In particular, it should check that the changes that the function applied
-did not break any of the (invariants)[https://en.wikipedia.org/wiki/Invariant_(mathematics)]
-of the contract, such as total number of tokens.</p>
-<p>You can read more about testing and cheat codes in the (Foundry
+<p>The <code>setUp</code> function is called before each test case, and can be used to
+set up the environment. In this case, we create a new vault, and deposit 7
+ether into it for address 42: the <code>vm.deal</code> function sets the balance of the
+user to 7 ether, and the <code>vm.prank</code> function sets the caller to address 42. This
+should now pass our test:</p>
+<pre><code class="language-plain">$ hevm test
+Checking 1 function(s) in contract src/setup-test.sol:MySetupTest
+[RUNNING] prove_correct(uint8)
+   [PASS] prove_correct
+</code></pre>
+<p>In general, the test should check the postconditions, e.g. the state of the
+contract after the call(s) are complete. It should also check that
+<a href="https://en.wikipedia.org/wiki/Invariant_(mathematics)">invariants</a> of the
+contract, such as total number of tokens, are not violated. You can read more
+about testing and cheat codes in the (Foundry
 Book)[https://book.getfoundry.sh/forge/cheatcodes] and you can see the
-hevm-supported cheat codes <a href="ds-test-tutorial.html#supported-cheat-codes">below</a>.</p>
+hevm-supported cheat codes <a href="std-test-tutorial.html#supported-cheat-codes">below</a>.</p>
 <h2 id="understanding-counterexamples"><a class="header" href="#understanding-counterexamples">Understanding Counterexamples</a></h2>
-<p>When hevm discovers a failure, it prints an example call how to trigger the failure. Let's see the following
-simple solidity code:</p>
-<pre><code>pragma solidity ^0.8.19;
-import {Test} from &quot;forge-std/Test.sol&quot;;
+<p>When hevm discovers a failure, it prints an example call how to trigger the
+failure. Let's write the following simple solidity code to
+<code>src/contract-fail.sol</code>:</p>
+<pre><code class="language-solidity">pragma solidity ^0.8.19;
+import {Test} from "forge-std/Test.sol";
 contract MyContract is Test {
   mapping (address =&gt; uint) balances;
   function prove_single_fail(address recv, uint amt) public {
@@ -552,8 +748,18 @@ contract MyContract is Test {
   }
 }
 </code></pre>
-<p>After compiling with <code>forge build</code>, when ran under hevm, we get:</p>
-<pre><code>$ hevm test
+<p>When compiling our foundry project, we must either always pass the <code>--ast</code> flag
+to <code>forge build</code>, or, much better, set the <code>ast = true</code> flag in the
+<code>foundry.toml</code> file:</p>
+<pre><code class="language-toml">ast = true
+</code></pre>
+<p>In case neither <code>--ast</code> was passed, nor <code>ast = true</code> was set in the
+<code>foundry.toml</code> file, when running hevm, we will get an error such as:</p>
+<pre><code class="language-plain">Error: unable to parse Foundry project JSON: [...]/out/Base.sol/CommonBase.json Contract: "CommonBase"
+</code></pre>
+<p>In these cases, issue <code>forge clean</code> and run <code>forge build --ast</code> again.</p>
+<p>Once the project has been correctly built, we can run <code>hevm test</code>, and get:</p>
+<pre><code class="language-plain">$ hevm test
 Checking 1 function(s) in contract src/contract-fail.sol:MyContract
 [RUNNING] prove_single_fail(address,uint256)
    [FAIL] prove_single_fail(address,uint256)
@@ -567,11 +773,23 @@ condition where the function call fails. The function should have had a <code>&g
 rather than a <code>&gt;</code> in the <code>if</code>. Notice that in this case, while hevm filled in
 the <code>address</code> to give a complete call, the address itself is irrelevant,
 although this is not explicitly mentioned.</p>
+<h2 id="starting-state-is-always-concrete"><a class="header" href="#starting-state-is-always-concrete">Starting State is Always Concrete</a></h2>
+<p>In <code>test</code> mode, hevm runs with the starting state set to concrete values, as
+dictated by the <code>setUp()</code> function explained above. This
+means that with the solidity-generated default constructor of contracts, state
+variables will be zero (unless set otherwise by <code>setUp()</code>),
+and arrays and mappings will be empty. If you need a
+different starting state, such as e.g. tokens already distributed to some
+addresses, you can set that up in the <code>setUp()</code> phase of your test.</p>
+<p>In case you need a symbolic starting state, see the <a href="std-test-tutorial.html#symbolic-execution-tutorial">Symbolic execution
+tutorial</a>. Note that if all you need is a
+symbolic calldata, then you don't need to run <code>hevm</code> in symbolic mode, you can
+simply run <code>hevm test</code> and hevm will provide you with a symbolic calldata.</p>
 <h2 id="test-cases-that-must-always-revert"><a class="header" href="#test-cases-that-must-always-revert">Test Cases that Must Always Revert</a></h2>
 <p>Hevm assumes that a test case should not always revert. If you have such a test
 case, hevm will warn you and return a FAIL. For example this toy contract:</p>
 <pre><code class="language-solidity">pragma solidity ^0.8.19;
-import {Test} from &quot;forge-std/Test.sol&quot;;
+import {Test} from "forge-std/Test.sol";
 contract MyContract is Test {
   uint256 cntr;
   function prove_allrevert(uint256 val) public {
@@ -583,7 +801,7 @@ contract MyContract is Test {
 }
 </code></pre>
 <p>When compiled with forge and then ran under hevm with <code>hevm test</code>, hevm returns:</p>
-<pre><code>Checking 1 function(s) in contract src/contract-allrevert.sol:MyContract
+<pre><code class="language-plain">Checking 1 function(s) in contract src/contract-allrevert.sol:MyContract
 [RUNNING] prove_allrevert(uint256)
    [FAIL] prove_allrevert(uint256)
    Reason:
@@ -593,7 +811,7 @@ contract MyContract is Test {
 <p>This is sometimes undesirable. In these cases, prefix your contract with
 <code>proveFail_</code> instead of <code>prove_</code>:</p>
 <pre><code class="language-solidity">pragma solidity ^0.8.19;
-import {Test} from &quot;forge-std/Test.sol&quot;;
+import {Test} from "forge-std/Test.sol";
 contract MyContract is Test {
   uint256 cntr;
   function proveFail_allrevert_expected(uint256 val) public {
@@ -609,17 +827,54 @@ contract MyContract is Test {
 }
 </code></pre>
 <p>When this is compiled with forge and then checked with hevm, it leads to:</p>
-<pre><code>Checking 1 function(s) in contract src/contract-allrevert-expected.sol:MyContract
+<pre><code class="language-plain">Checking 1 function(s) in contract src/contract-allrevert-expected.sol:MyContract
 [RUNNING] proveFail_allrevert_expected(uint256)
    [PASS] proveFail_allrevert_expected(uint256)
 </code></pre>
 <p>Which is now the expected outcome.</p>
+<h2 id="panic-codes"><a class="header" href="#panic-codes">Panic Codes</a></h2>
+<p>Solidity generates <a href="https://docs.soliditylang.org/en/latest/control-structures.html#panic-via-assert-and-error-via-require">different panic
+codes</a>
+for different kinds of issues. The list of panic codes returned by Solidity
+are:</p>
+<ul>
+<li>0x00: Used for generic compiler inserted panics, such as e.g. wrong ABI
+encoding, or if the ABI decoder fails to decode a value.</li>
+<li>0x01: If you call assert with an argument that evaluates to false.</li>
+<li>0x11: If an arithmetic operation results in underflow or overflow outside of an unchecked { ... } block.</li>
+<li>0x12; If you divide or modulo by zero (e.g. 5 / 0 or 23 % 0).</li>
+<li>0x21: If you convert a value that is too big or negative into an enum type.</li>
+<li>0x22: If you access a storage byte array that is incorrectly encoded.</li>
+<li>0x31: If you call .pop() on an empty array.</li>
+<li>0x32: If you access an array, bytesN or an array slice at an out-of-bounds or negative index (i.e. x[i] where i &gt;= x.length or i &lt; 0).</li>
+<li>0x41: If you allocate too much memory or create an array that is too large.</li>
+<li>0x51: If you call a zero-initialized variable of internal function type.</li>
+</ul>
+<p>Of these, <code>hevm test</code> will only report counterexamples for 0x1, or for custom errors that
+developers define, such as:</p>
+<pre><code class="language-solidity">error InsufficientBalance(uint256 requested, uint256 available);
+....
+uint reqested = ...;
+uint available = ...;
+if (requested &gt; available) {
+    revert InsufficientBalance(requested, available);
+}
+</code></pre>
+<p>Notice that for panic codes, the returned counterexample will produce
+a return whose first 4 bytes will be:</p>
+<pre><code class="language-plain">$ cast keccak "Panic(uint256)" | cut -c 1-10
+0x4e487b71
+</code></pre>
+<p>And if it's a custom error, the first 4 bytes will be:</p>
+<pre><code class="language-plain">$ cast keccak "Error(string)" | cut -c 1-10
+0x08c379a0
+</code></pre>
 <h2 id="supported-cheat-codes"><a class="header" href="#supported-cheat-codes">Supported Cheat Codes</a></h2>
 <p>Since hevm is an EVM implementation mainly dedicated to testing and
-exploration, it features a set of &quot;cheat codes&quot; which can manipulate the
+exploration, it features a set of "cheat codes" which can manipulate the
 environment in which the execution is run. These can be accessed by calling
 into a contract (typically called <code>Vm</code>) at address
-<code>0x7109709ECfa91a80626fF3989D68f67F5b1DD12D</code>, which happens to be keccak(&quot;hevm cheat code&quot;),
+<code>0x7109709ECfa91a80626fF3989D68f67F5b1DD12D</code>, which happens to be keccak("hevm cheat code"),
 implementing the following methods:</p>
 <div class="table-wrapper"><table><thead><tr><th>Function</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>function prank(address sender) public</code></td><td>Sets <code>msg.sender</code> to the specified <code>sender</code> for the next call.</td></tr>
@@ -644,8 +899,28 @@ implementing the following methods:</p>
 circumstances. This allows to e.g. create two functions, one that is known to be good, and
 another that uses less gas, but is hard to check for correctness. Then, with equivalence
 checking, one can check whether the two behave the same.</p>
+<p>The notion of equivalence in hevm is defined as follows. Two contracts are equivalent
+if for all possible calldata and state, after execution has finished, their observable
+storage state is equivalent and they return the same value. In particular, the
+following is NOT checked when checking for equivalence:</p>
+<ul>
+<li><a href="https://ethereum.org/en/developers/docs/gas/">Gas</a> consumption</li>
+<li><a href="https://solidity-by-example.org/events/">Events</a> emitted</li>
+<li>Maximum stack depth</li>
+<li>Maximum memory usage</li>
+</ul>
+<p>Note that in the Solidity ABI, the calldata's first 4 bytes are the
+<a href="https://docs.soliditylang.org/en/latest/abi-spec.html#function-selector">function selector</a>
+which decide which function is being called, along with the potential
+<a href="https://solidity-by-example.org/fallback/">fallback</a> function mechanism.
+Hence, treating calldata as symbolic covers all possible function calls,
+including fallback functions. While not all contracts
+<a href="https://github.com/ethereum/requests-for-proposals/blob/master/open-rfps/pectra-system-contracts-audit.md">follow the Solidity ABI</a>,
+since hevm's symbolic equivalence checker does not distinguish between function
+selector and function parameter bytes in the calldata, it will still correctly
+check the equivalence of such non-conforming contracts.</p>
 <h2 id="finding-discrepancies"><a class="header" href="#finding-discrepancies">Finding Discrepancies</a></h2>
-<p>Let's see this toy contract, in file <a href="contract1.sol">contract1.sol</a>:</p>
+<p>Let's see this toy contract, in file contract1.sol:</p>
 <pre><code class="language-solidity">//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 contract MyContract {
@@ -656,7 +931,7 @@ contract MyContract {
   }
 }
 </code></pre>
-<p>And this, slightly modified one, in file <a href="contract2.sol">contract2.sol</a>:</p>
+<p>And this, slightly modified one, in file contract2.sol:</p>
 <pre><code class="language-solidity">//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 contract MyContract {
@@ -668,14 +943,10 @@ contract MyContract {
   }
 }
 </code></pre>
-<p>Now ask hevm if they are equivalent. First, let's compile both contracts and get their bytecode:</p>
-<pre><code class="language-shell">bytecode1=$(solc --bin-runtime &quot;contract1.sol&quot; | tail -n1)
-bytecode2=$(solc --bin-runtime &quot;contract2.sol&quot; | tail -n1)
-</code></pre>
 <p>Let's ask hevm to compare the two:</p>
 <pre><code class="language-shell">$ hevm equivalence \
-      --code-a $(solc --bin-runtime &quot;contract1.sol&quot; | tail -n1) \
-      --code-b $(solc --bin-runtime &quot;contract2.sol&quot; | tail -n1)
+      --code-a $(solc --bin-runtime "contract1.sol" | tail -n1) \
+      --code-b $(solc --bin-runtime "contract2.sol" | tail -n1)
 Found 90 total pairs of endstates
 Asking the SMT solver for 58 pairs
 Reuse of previous queries was Useful in 0 cases
@@ -684,7 +955,7 @@ Not equivalent. The following inputs result in differing behaviours:
 Calldata:
   0xafc2c94900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000023
 Storage:
-  Addr SymAddr &quot;entrypoint&quot;: [(0x0,0x10)]
+  Addr SymAddr "entrypoint": [(0x0,0x10)]
 Transaction Context:
   TxValue: 0x0
 </code></pre>
@@ -692,7 +963,7 @@ Transaction Context:
 to 35, the two are not equivalent. This is indeed the case: one will add <code>35 div 2 = 17</code> twice, which is 34, the other will add 35.</p>
 <h2 id="fixing-and-proving-correctness"><a class="header" href="#fixing-and-proving-correctness">Fixing and Proving Correctness</a></h2>
 <p>Let's fix the above issue by incrementing the balance by 1 in case it's an odd
-value. Let's call this <a href="contract3.sol">contract3.sol</a>:</p>
+value. Let's call this contract3.sol:</p>
 <pre><code class="language-solidity">//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 contract MyContract {
@@ -707,8 +978,8 @@ contract MyContract {
 </code></pre>
 <p>Let's check whether this new contract is indeed equivalent:</p>
 <pre><code class="language-shell">$ hevm equivalence \
-    --code-a $(solc --bin-runtime &quot;contract1.sol&quot; | tail -n1) \
-    --code-b $(solc --bin-runtime &quot;contract3.sol&quot; | tail -n1)
+    --code-a $(solc --bin-runtime "contract1.sol" | tail -n1) \
+    --code-b $(solc --bin-runtime "contract3.sol" | tail -n1)
 Found 108 total pairs of endstates
 Asking the SMT solver for 74 pairs
 Reuse of previous queries was Useful in 0 cases
@@ -719,170 +990,372 @@ consume the same amount of gas and have widely different EVM bytecodes. Yet for
 an outside observer, they behave the same. Notice that hevm didn't simply fuzz
 the contract and within a given out of time it didn't find a counterexample.
 Instead, it <em>proved</em> the two equivalent from an outside observer perspective.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="hevm-test"><a class="header" href="#hevm-test"><code>hevm test</code></a></h1>
-<pre><code>Usage: hevm test [--root STRING] [--project-type PROJECTTYPE] [--rpc TEXT]
-                 [--number W256] [--verbose INT] [--coverage] [--match STRING]
-                 [--solver TEXT] [--num-solvers NATURAL] [--smtdebug] [--debug]
-                 [--trace] [--ffi] [--smttimeout NATURAL]
-                 [--max-iterations INTEGER]
-                 [--loop-detection-heuristic LOOPHEURISTIC]
-                 [--abstract-arithmetic] [--abstract-memory]
-                 [--num-cex-fuzz INTEGER] [--ask-smt-iterations INTEGER]
-
-Available options:
-  -h,--help                Show this help text
-  --root STRING            Path to project root directory (default: . )
-  --project-type PROJECTTYPE
-                           Is this a Foundry or DappTools project (default:
-                           Foundry)
-  --rpc TEXT               Fetch state from a remote node
-  --number W256            Block: number
-  --verbose INT            Append call trace: {1} failures {2} all
-  --coverage               Coverage analysis
-  --match STRING           Test case filter - only run methods matching regex
-  --solver TEXT            Used SMT solver: z3 (default), cvc5, or bitwuzla
-  --num-solvers NATURAL    Number of solver instances to use (default: number of
-                           cpu cores)
-  --smtdebug               Print smt queries sent to the solver
-  --debug                  Debug printing of internal behaviour
-  --trace                  Dump trace
-  --ffi                    Allow the usage of the hevm.ffi() cheatcode (WARNING:
-                           this allows test authors to execute arbitrary code on
-                           your machine)
-  --smttimeout NATURAL     Timeout given to SMT solver in seconds (default: 300)
-  --max-iterations INTEGER Number of times we may revisit a particular branching
-                           point
-  --loop-detection-heuristic LOOPHEURISTIC
-                           Which heuristic should be used to determine if we are
-                           in a loop: StackBased (default) or Naive
-                           (default: StackBased)
-  --abstract-arithmetic    Use abstraction-refinement for complicated arithmetic
-                           functions such as MulMod. This runs the solver first
-                           with abstraction turned on, and if it returns a
-                           potential counterexample, the counterexample is
-                           refined to make sure it is a counterexample for the
-                           actual (not the abstracted) problem
-  --abstract-memory        Use abstraction-refinement for Memory. This runs the
-                           solver first with abstraction turned on, and if it
-                           returns a potential counterexample, the
-                           counterexample is refined to make sure it is a
-                           counterexample for the actual (not the abstracted)
-                           problem
-  --num-cex-fuzz INTEGER   Number of fuzzing tries to do to generate a
-                           counterexample (default: 3) (default: 3)
-  --ask-smt-iterations INTEGER
-                           Number of times we may revisit a particular branching
-                           point before we consult the smt solver to check
-                           reachability (default: 1) (default: 1)
+<h2 id="dealing-with-already-compiled-contracts"><a class="header" href="#dealing-with-already-compiled-contracts">Dealing with Already Compiled Contracts</a></h2>
+<p>If the contracts have already been compiled into a hex string, you can paste
+them into files <code>a.txt</code> and <code>b.txt</code> and compare them via:</p>
+<pre><code class="language-shell">$ hevm equivalence --code-a "$(&lt;a.txt)" --code-b "$(&lt;b.txt)"
 </code></pre>
-<p><code>hevm test</code> executes all solidity unit tests that make use of the <code>ds-test</code> assertion library
-(a.k.a <a href="https://book.getfoundry.sh/forge/forge-std">Foundry tests</a>). It
-supports both foundry based (the default) and <a href="https://dapp.tools/">dapptools</a> based projects.</p>
-<p>A more detailed introduction to symbolic unit tests with <code>hevm</code> can be found
-<a href="https://fv.ethereum.org/2020/12/11/symbolic-execution-with-ds-test/">here</a>. An
-overview of using ds-test for solidity testing can be found in the <a href="https://book.getfoundry.sh/forge/tests">foundry
+<p>You can also copy-paste the contents of the hex strings directly into the
+command line, although this can become cumbersome:</p>
+<pre><code class="language-plain">$ hevm equivalence --code-a "6080604052348015600e575f80fd5b50600436106026575f3560e01c8063881fc77c14602a575b5f80fd5b60306032565b005b5f600190506002811460455760446048565b5b50565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52600160045260245ffdfea26469706673582212208c57ae04774d9ebae7d1d11f9d5e730075068bc7988d4c83c6fed85b7f062e7b64736f6c634300081a0033" --code-b "6080604052348015600e575f80fd5b50600436106030575f3560e01c806385c2fc7114603457806386ae330914603c575b5f80fd5b603a6044565b005b60426055565b005b60025f541460535760526066565b5b565b60035f541460645760636066565b5b565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52600160045260245ffdfea2646970667358221220bd2f8a1ba281308f845e212d2b5eceab85e029909fa2409cdca7ede039bae26564736f6c634300081a0033"
+</code></pre>
+<h2 id="working-with-raw-bytecode"><a class="header" href="#working-with-raw-bytecode">Working with Raw Bytecode</a></h2>
+<p>When doing equivalence checking, the returndata of the two systems are
+compared, and the calldata is set to be symbolic. This allows us to compare raw
+bytecode as well -- the code does not need to adhere to the Solidity <a href="https://docs.soliditylang.org/en/latest/abi-spec.html">ABI</a>.</p>
+<p>The following contract is written in raw assembly. It takes
+the 1st byte of the calldata, multiplies it by 0, and stores it in memory, then
+returns this value:</p>
+<pre><code class="language-plain">PUSH1 0x00
+CALLDATALOAD
+PUSH1 0x00
+MUL
+PUSH1 0x00
+MSTORE
+PUSH1 0x01
+PUSH1 0x00
+RETURN
+</code></pre>
+<p>This can be compiled into bytecode via e.g. <a href="https://evm.codes/">evm.codes</a>,
+which allows us to both simulate this, and to get a bytecode for it:
+<code>60003560000260005260016000f3</code>. Notice that since anything multiplied by 0 is
+zero, for any calldata, this will put 0 into the returndata.</p>
+<p>Let's compare the above code to an assembly contract that simply returns 0:</p>
+<pre><code class="language-plain">PUSH32 0x0
+PUSH1 0x00
+MSTORE
+PUSH1 0x01
+PUSH1 0x00
+RETURN
+</code></pre>
+<p>This second contract compiles to:
+<code>7f000000000000000000000000000000000000000000000000000000000000000060005260016000f3</code>.</p>
+<p>Let's check whether the two are equivalent:</p>
+<pre><code class="language-shell">$ hevm equivalence --code-a "60003560000260005260016000f3" --code-b "7f000000000000000000000000000000000000000000000000000000000000000060005260016000f3"
+Found 1 total pairs of endstates
+Asking the SMT solver for 1 pairs
+No discrepancies found
+</code></pre>
+<p>If however we replace the</p>
+<pre><code class="language-plain">PUSH32 0x0
+</code></pre>
+<p>with</p>
+<pre><code class="language-plain">PUSH32 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+</code></pre>
+<p>we get:</p>
+<pre><code class="language-shell">$ hevm equivalence --code-a "60003560000260005260016000f3" --code-b "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260016000f3"
+Found 1 total pairs of endstates
+Asking the SMT solver for 1 pairs
+Reuse of previous queries was Useful in 0 cases
+Not equivalent. The following inputs result in differing behaviours:
+-----
+Calldata:
+  Empty
+</code></pre>
+<p>Which shows that even with empty calldata, the two are not equivalent: one
+returns <code>0xff</code> and the other <code>0x0</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="symbolic-execution-tutorial"><a class="header" href="#symbolic-execution-tutorial">Symbolic Execution Tutorial</a></h1>
+<p>Symbolic execution mode of hevm checks whether any call to the contract could
+result in an assertion violation. Let's see a simple contract, in file
+contract-symb-1.sol:</p>
+<pre><code class="language-solidity">//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+contract MyContract {
+  function simple_symb() public pure {
+    uint i;
+    i = 1;
+    assert(i == 2);
+  }
+}
+</code></pre>
+<p>Let's first compile it with <code>solc</code>:</p>
+<pre><code class="language-shell">$ solc --bin-runtime contract-symb-1.sol
+======= contract-symb-1.sol:MyContract =======
+Binary:
+6080604052348015600e575f80f....
+</code></pre>
+<p>Now let's symbolically execute it:</p>
+<pre><code class="language-shell">$ hevm symbolic --sig "simple_symb()" --code "6080604052348015...."
+
+Discovered the following counterexamples:
+
+Calldata:
+  0x881fc77c
+
+Storage:
+  Addr SymAddr "miner": []
+  Addr SymAddr "origin": []
+
+Transaction Context:
+  TxValue: 0x0
+</code></pre>
+<h2 id="symbolically-executing-a-specific-function"><a class="header" href="#symbolically-executing-a-specific-function">Symbolically executing a specific function</a></h2>
+<p>When there are more than one functions in the code, the system will try to
+symbolically execute all. Let's take the file
+contract-symb-2.sol:</p>
+<pre><code class="language-solidity">//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+contract MyContract {
+  uint i;
+  function simple_symb1() public view {
+    assert(i == 2);
+  }
+  function simple_symb2() public view {
+    assert(i == 3);
+  }
+}
+</code></pre>
+<p>And compile it with solc:</p>
+<pre><code class="language-shell">
+$ solc --bin-runtime contract-symb-2.sol
+
+======= contract-symb-2.sol:MyContract =======
+Binary of the runtime part:
+6080604052348015600e57....
+</code></pre>
+<p>Now execute the bytecode symbolically with hevm:</p>
+<pre><code class="language-shell">$ hevm symbolic --code "608060405234...."
+
+Discovered the following counterexamples:
+
+Calldata:
+  0x85c2fc71
+
+Storage:
+  Addr SymAddr "entrypoint": [(0x0,0x0)]
+  Addr SymAddr "miner": []
+  Addr SymAddr "origin": []
+
+Transaction Context:
+  TxValue: 0x0
+
+
+Calldata:
+  0x86ae3309
+
+Storage:
+  Addr SymAddr "entrypoint": [(0x0,0x0)]
+  Addr SymAddr "miner": []
+  Addr SymAddr "origin": []
+
+Transaction Context:
+  TxValue: 0x0
+</code></pre>
+<p>Notice that hevm discovered two issues. The calldata in each case is the function
+signature that <code>cast</code> from <code>foundry</code> gives for the two functions:</p>
+<pre><code class="language-shell">$ cast sig "simple_symb1()"
+0x85c2fc71
+
+$cast sig "simple_symb2()"
+0x86ae3309
+</code></pre>
+<p>In case you only want to execute only a particular function, you can ask <code>hevm</code>
+to only execute a particular function signature via the <code>--sig</code> option:</p>
+<pre><code class="language-shell">$ hevm symbolic --sig "simple_symb1()" --code "6080604052348015600...."
+
+
+Discovered the following counterexamples:
+
+Calldata:
+  0x85c2fc71
+
+Storage:
+  Addr SymAddr "entrypoint": [(0x0,0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)]
+  Addr SymAddr "miner": []
+  Addr SymAddr "origin": []
+</code></pre>
+<h2 id="abstract-versus-empty-starting-storage"><a class="header" href="#abstract-versus-empty-starting-storage">Abstract versus empty starting storage</a></h2>
+<p>The initial store state of <code>hevm</code> is completely abstract. This means that the
+functions are explored for all possible values of the state. Let's take the
+following contract contract-symb-3.sol:</p>
+<pre><code class="language-solidity">//SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+contract MyContract {
+  uint i;
+  function simple_symb() public view {
+    assert(i == 0);
+  }
+}
+</code></pre>
+<p>Let's compile with solc:</p>
+<pre><code class="language-shell">solc --bin-runtime contract-symb-3.sol
+
+======= contract-symb-3.sol:MyContract =======
+Binary of the runtime part:
+6080604052348015600e575f80fd5b50600436106026575f3560e01c806388....
+</code></pre>
+<p>With default symbolic execution, a counterexample is found:</p>
+<pre><code class="language-shell">$ cabal hevm symbolic --initial-storage Empty --code "60806040523...."
+
+Discovered the following counterexamples:
+
+Calldata:
+  0x881fc77c
+
+Storage:
+  Addr SymAddr "entrypoint": [(0x0,0x1)]
+  Addr SymAddr "miner": []
+  Addr SymAddr "origin": []
+
+Transaction Context:
+  TxValue: 0x0
+</code></pre>
+<p>However, notice that the counterexample has <code>1</code> as the value for <code>i</code> storage
+variable. However, this contract can never actually assign <code>i</code> to any value.
+Running this contract with <code>--initial-state Empty</code> ensures that the default
+value, 0, is assigned, and the assert can never fail:</p>
+<pre><code class="language-shell">cabal run exe:hevm -- symbolic --initial-storage Empty --code "60806040...."
+
+QED: No reachable property violations discovered
+</code></pre>
+<p>Here, no counterexamples are discovered, because with empty default state, the
+value of <code>i</code> is zero, and therefore <code>assert(i == 0)</code> will all never trigger.</p>
+<h2 id="using-forge-to-build-your-project-for-symbolic-execution"><a class="header" href="#using-forge-to-build-your-project-for-symbolic-execution">Using forge to build your project for symbolic execution</a></h2>
+<p>Forge can also be used to build your project and run symbolic execution on it.
+This fits in well with standard development practices. You can use <code>forge</code> to
+build and then <code>jq</code> to extract the runtime bytecode. Let's say we have the
+following contract:</p>
+<pre><code class="language-solidity">contract AbsStorage {
+    uint256 public a;
+    function not2() public {
+      assert(a != 2);
+    }
+}
+</code></pre>
+<p>Notice that this contract cannot set <code>a</code> to 2, hence the assert will never fail
+in the real world. However, in <code>symbolic</code> mode, hevm allows the state to be
+symbolic, hence it can explore all possible values of <code>a</code>, even ones that are
+not possible in the real world. Let's compile this contract with forge and then
+run symbolic execution on it:</p>
+<pre><code class="language-shell">$ forge build --ast
+[⠒] Compiling...
+[⠢] Compiling 1 files with Solc 0.8.19
+[⠆] Solc 0.8.19 finished in 11.46ms
+
+$ hevm symbolic --code $(jq -r '.deployedBytecode.object' out/abs_storage.sol/AbsStorage.json )
+Discovered the following 1 counterexample(s):
+
+Calldata:
+  0xb1712ffd
+
+Storage:
+  Addr SymAddr "entrypoint": [(0x0,0x2)]
+  Addr SymAddr "miner": []
+  Addr SymAddr "origin": []
+
+Transaction Context:
+  TxValue: 0x0
+</code></pre>
+<p>The calldata provided by hevm is the function signature of <code>not2()</code>. This can
+be checked via <code>cast</code>, which is installed as part of foundry:</p>
+<pre><code class="language-shell">cast keccak "not2()"
+0xb1712ffd...
+</code></pre>
+<p>We can get all the details of the state and context led to the counterexample
+by using the <code>--get-models</code> flag. While there will be a number of branches
+displayed, only one will be relevant to the counterexample. Here is the
+relevant branch:</p>
+<pre><code>=== Models for 8 branches ===
+[...]
+
+--- Branch ---
+
+Inputs:
+
+  Calldata:
+    0xb1712ffd
+
+  Storage:
+    Addr SymAddr "entrypoint": [(0x0,0x2)]
+
+  Transaction Context:
+    TxValue: 0x0
+
+
+End State:
+
+  (Failure
+    Error:
+      (Revert
+        (ConcreteBuf
+          Length: 36 (0x24) bytes
+          0000:   4e 48 7b 71  00 00 00 00  00 00 00 00  00 00 00 00   NH{q............
+          0010:   00 00 00 00  00 00 00 00  00 00 00 00  00 00 00 00   ................
+          0020:   00 00 00 01                                          ....
+        )
+      )
+      [...]
+</code></pre>
+<p>Here, the storage variable is set to <code>2</code>, which is the value that
+the <code>assert</code> tested for. Notice that the panic exception is of type <code>01</code>, which
+is what's expected for an <a href="https://docs.soliditylang.org/en/latest/control-structures.html"><code>assert</code> failure in
+solidity</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="hevm-test"><a class="header" href="#hevm-test"><code>hevm test</code></a></h1>
+<pre><code class="language-plain">Usage: hevm test [--root STRING] [--project-type PROJECTTYPE] [--rpc TEXT]
+                 [--number W256] [--verb INT] [--match STRING]
+                 [--solver TEXT] [--num-solvers NATURAL] ...
+
+</code></pre>
+<p>Execute all unit tests that make use of the <code>std-test</code> assertion library
+a.k.a <a href="https://book.getfoundry.sh/forge/forge-std">Foundry tests</a> on functions that
+start with <code>prove_</code>. This command supports both Foundry- and
+<a href="https://dapp.tools/">Dapptools-</a>based projects. For a full listing of options,
+see <code>hevm test --help</code>. For common options, see <a href="./common-options.html">here</a>.</p>
+<h2 id="simple-example-usage"><a class="header" href="#simple-example-usage">Simple example usage</a></h2>
+<p>If you are inside a forge project that has already been built via <code>forge build --ast</code>, you can:</p>
+<pre><code class="language-shell">$ hevm test
+Checking 1 function(s) in contract src/badvault-test.sol:BadVault
+[RUNNING] prove_mytest(uint256)
+   [PASS] prove_mytest(uint256)
+</code></pre>
+<p>To prove all function that start with <code>prove_</code> in all contracts.</p>
+<h2 id="further-reading"><a class="header" href="#further-reading">Further reading</a></h2>
+<p>See our
+<a href="std-test-tutorial.html">tutorial here</a> for more details. An overview of using
+<code>std-test</code> for solidity testing can be found in the <a href="https://book.getfoundry.sh/forge/tests">foundry
 book</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="hevm-symbolic"><a class="header" href="#hevm-symbolic"><code>hevm symbolic</code></a></h1>
-<pre><code class="language-shell">Usage: hevm symbolic [--code TEXT] [--calldata TEXT] [--address ADDR]
+<pre><code class="language-plain">Usage: hevm symbolic [--code TEXT] [--code-file STRING] [--calldata TEXT] [--address ADDR]
                      [--caller ADDR] [--origin ADDR] [--coinbase ADDR]
                      [--value W256] [--nonce WORD64] [--gas WORD64]
-                     [--number W256] [--timestamp W256] [--basefee W256]
-                     [--priority-fee W256] [--gaslimit WORD64] [--gasprice W256]
-                     [--create] [--maxcodesize W256] [--prev-randao W256]
-                     [--chainid W256] [--rpc TEXT] [--block W256]
-                     [--root STRING] [--project-type PROJECTTYPE]
-                     [--initial-storage INITIALSTORAGE] [--sig TEXT]
-                     [--arg STRING]... [--get-models] [--show-tree]
-                     [--show-reachable-tree] [--smttimeout NATURAL]
-                     [--max-iterations INTEGER] [--solver TEXT] [--smtdebug]
-                     [--assertions [WORD256]] [--ask-smt-iterations INTEGER]
-                     [--num-solvers NATURAL]
-                     [--loop-detection-heuristic LOOPHEURISTIC]
-
-Available options:
-  -h,--help                Show this help text
-  --code TEXT              Program bytecode
-  --calldata TEXT          Tx: calldata
-  --address ADDR           Tx: address
-  --caller ADDR            Tx: caller
-  --origin ADDR            Tx: origin
-  --coinbase ADDR          Block: coinbase
-  --value W256             Tx: Eth amount
-  --nonce WORD64           Nonce of origin
-  --gas WORD64             Tx: gas amount
-  --number W256            Block: number
-  --timestamp W256         Block: timestamp
-  --basefee W256           Block: base fee
-  --priority-fee W256      Tx: priority fee
-  --gaslimit WORD64        Tx: gas limit
-  --gasprice W256          Tx: gas price
-  --create                 Tx: creation
-  --maxcodesize W256       Block: max code size
-  --prev-randao W256       Block: prevRandao
-  --chainid W256           Env: chainId
-  --rpc TEXT               Fetch state from a remote node
-  --block W256             Block state is be fetched from
-  --root STRING            Path to project root directory (default: . )
-  --project-type PROJECTTYPE
-                           Is this a Foundry or DappTools project (default:
-                           Foundry)
-  --initial-storage INITIALSTORAGE
-                           Starting state for storage: Empty, Abstract (default
-                           Abstract)
-  --sig TEXT               Signature of types to decode / encode
-  --arg STRING             Values to encode
-  --get-models             Print example testcase for each execution path
-  --show-tree              Print branches explored in tree view
-  --show-reachable-tree    Print only reachable branches explored in tree view
-  --smttimeout NATURAL     Timeout given to SMT solver in seconds (default: 300)
-  --max-iterations INTEGER Number of times we may revisit a particular branching
-                           point
-  --solver TEXT            Used SMT solver: z3 (default), cvc5, or bitwuzla
-  --smtdebug               Print smt queries sent to the solver
-  --assertions [WORD256]   Comma separated list of solc panic codes to check for
-                           (default: user defined assertion violations only)
-  --ask-smt-iterations INTEGER
-                           Number of times we may revisit a particular branching
-                           point before we consult the smt solver to check
-                           reachability (default: 1) (default: 1)
-  --num-solvers NATURAL    Number of solver instances to use (default: number of
-                           cpu cores)
-  --loop-detection-heuristic LOOPHEURISTIC
-                           Which heuristic should be used to determine if we are
-                           in a loop: StackBased (default) or Naive
-                           (default: StackBased)
+                     [--number W256] [--timestamp W256] [--basefee W256] ...
 </code></pre>
-<p>Run a symbolic execution against the given parameters, searching for assertion violations.</p>
-<p>Counterexamples will be returned for any reachable assertion violations. Where
+<p>Run a symbolic execution against the given parameters, searching for assertion
+violations. For a full listing of options, see <code>hevm symbolic --help</code>.
+For common options, see <a href="./common-options.html">here</a>.</p>
+<p>Counterexamples are returned for any reachable assertion violations. Where
 an assertion violation is defined as either an execution of the invalid opcode
 (<code>0xfe</code>), or a revert with a message of the form
 <code>abi.encodeWithSelector('Panic(uint256)', errCode)</code> with <code>errCode</code> being one of
 the predefined solc assertion codes defined
 <a href="https://docs.soliditylang.org/en/latest/control-structures.html#panic-via-assert-and-error-via-require">here</a>.</p>
+<h2 id="arithmetic-overflow"><a class="header" href="#arithmetic-overflow">Arithmetic overflow</a></h2>
 <p>By default hevm ignores assertion violations that result from arithmetic
 overflow (<code>Panic(0x11)</code>), although this behaviour can be customised via the
 <code>--assertions</code> flag. For example, the following will return counterexamples for
 arithmetic overflow (<code>0x11</code>) and user defined assertions (<code>0x01</code>):</p>
 <pre><code>hevm symbolic --code $CODE --assertions '[0x01, 0x11]'
 </code></pre>
-<p>The default value for <code>calldata</code> and <code>caller</code> are symbolic values, but can be specialized to concrete functions with their corresponding flags.</p>
+<p>The default value for <code>calldata</code> and <code>caller</code> are symbolic values, but can be
+specialized to concrete functions with their corresponding flags.</p>
+<h2 id="specializing-calldata"><a class="header" href="#specializing-calldata">Specializing calldata</a></h2>
 <p>One can also specialize specific arguments to a function signature, while
 leaving others abstract. If <code>--sig</code> is given, calldata is assumed to be of the
 form suggested by the function signature. With this flag, specific arguments
 can be instantiated to concrete values via the <code>--arg</code> flag.</p>
 <p>This is best illustrated through a few examples:</p>
 <p>Calldata specialized to the bytestring <code>0xa9059cbb</code> followed by 64 symbolic bytes:</p>
-<pre><code class="language-shell">hevm symbolic --sig &quot;transfer(address,uint256)&quot; --code $(&lt;dstoken.bin-runtime)
+<pre><code class="language-shell">hevm symbolic --sig "transfer(address,uint256)" --code $(&lt;dstoken.bin-runtime)
 </code></pre>
 <p>Calldata specialized to the bytestring
 <code>0xa9059cbb0000000000000000000000007cfa93148b0b13d88c1dce8880bd4e175fb0dedf</code>
 followed by 32 symbolic bytes.</p>
-<pre><code class="language-shell">hevm symbolic --sig &quot;transfer(address,uint256)&quot; --arg 0x7cFA93148B0B13d88c1DcE8880bd4e175fb0DeDF --code $(&lt;dstoken.bin-runtime)
+<pre><code class="language-shell">hevm symbolic --sig "transfer(address,uint256)" --arg 0x7cFA93148B0B13d88c1DcE8880bd4e175fb0DeDF --code $(&lt;dstoken.bin-runtime)
 </code></pre>
 <p>Calldata specialized to the bytestring <code>0xa9059cbb</code> followed by 32 symbolic
 bytes, followed by the bytestring
 <code>0000000000000000000000000000000000000000000000000000000000000000</code>:</p>
-<pre><code class="language-shell">hevm symbolic --sig &quot;transfer(address,uint256)&quot; --arg &quot;&lt;symbolic&gt;&quot; --arg 0 --code $(&lt;dstoken.bin-runtime)
+<pre><code class="language-shell">hevm symbolic --sig "transfer(address,uint256)" --arg "&lt;symbolic&gt;" --arg 0 --code $(&lt;dstoken.bin-runtime)
 </code></pre>
 <p>If the <code>--get-models</code> flag is given, example input values will be returned for
 each possible execution path. This can be useful for automatic test case
@@ -890,11 +1363,13 @@ generation.</p>
 <p>The default timeout for SMT queries is no timeout. If your program is taking
 longer than a couple of minutes to run, you can experiment with configuring the
 timeout to somewhere around 10s by doing <code>--smttimeout 10000</code></p>
+<h2 id="storage"><a class="header" href="#storage">Storage</a></h2>
 <p>Storage can be initialized in two ways:</p>
 <ul>
 <li><code>Empty</code>: all storage slots for all contracts are initialized to zero</li>
 <li><code>Abstract</code>: all storage slots are initialized as unconstrained abstract values</li>
 </ul>
+<h2 id="exploration-strategy"><a class="header" href="#exploration-strategy">Exploration strategy</a></h2>
 <p><code>hevm</code> uses an eager approach for symbolic execution, meaning that it will
 first attempt to explore all branches in the program (without querying the smt
 solver to check if they are reachable or not). Once the full execution tree has
@@ -907,124 +1382,445 @@ iterations (controlled by the <code>--ask-smt-iterations</code> flag), the solve
 invoked to check whether a given loop branch is reachable. In cases where the
 number of loop iterations is known in advance, you may be able to speed up
 execution by setting this flag to an appropriate value.</p>
+<h2 id="further-reading-1"><a class="header" href="#further-reading-1">Further reading</a></h2>
+<p>For a tutorial on symbolic execution with <code>hevm</code>, see the <a href="symbolic-execution-tutorial.html">the page
+here</a>.
+An older blog post on symbolic execution with <code>hevm</code> can be found
+<a href="https://fv.ethereum.org/2020/07/28/symbolic-hevm-release">here</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="hevm-equivalence"><a class="header" href="#hevm-equivalence"><code>hevm equivalence</code></a></h1>
-<pre><code>Usage: hevm equivalence --code-a TEXT --code-b TEXT [--sig TEXT]
-                        [--arg STRING]... [--calldata TEXT]
-                        [--smttimeout NATURAL] [--max-iterations INTEGER]
-                        [--solver TEXT] [--smtoutput] [--smtdebug] [--debug]
-                        [--trace] [--ask-smt-iterations INTEGER]
-                        [--num-cex-fuzz INTEGER]
-                        [--loop-detection-heuristic LOOPHEURISTIC]
-                        [--abstract-arithmetic] [--abstract-memory]
-
-Available options:
-  -h,--help                Show this help text
-  --code-a TEXT            Bytecode of the first program
-  --code-b TEXT            Bytecode of the second program
-  --sig TEXT               Signature of types to decode / encode
-  --arg STRING             Values to encode
-  --calldata TEXT          Tx: calldata
-  --smttimeout NATURAL     Timeout given to SMT solver in seconds (default: 300)
-  --max-iterations INTEGER Number of times we may revisit a particular branching
-                           point
-  --solver TEXT            Used SMT solver: z3 (default), cvc5, or bitwuzla
-  --smtoutput              Print verbose smt output
-  --smtdebug               Print smt queries sent to the solver
-  --debug                  Debug printing of internal behaviour
-  --trace                  Dump trace
-  --ask-smt-iterations INTEGER
-                           Number of times we may revisit a particular branching
-                           point before we consult the smt solver to check
-                           reachability (default: 1) (default: 1)
-  --num-cex-fuzz INTEGER   Number of fuzzing tries to do to generate a
-                           counterexample (default: 3) (default: 3)
-  --loop-detection-heuristic LOOPHEURISTIC
-                           Which heuristic should be used to determine if we are
-                           in a loop: StackBased (default) or Naive
-                           (default: StackBased)
-  --abstract-arithmetic    Use abstraction-refinement for complicated arithmetic
-                           functions such as MulMod. This runs the solver first
-                           with abstraction turned on, and if it returns a
-                           potential counterexample, the counterexample is
-                           refined to make sure it is a counterexample for the
-                           actual (not the abstracted) problem
-  --abstract-memory        Use abstraction-refinement for Memory. This runs the
-                           solver first with abstraction turned on, and if it
-                           returns a potential counterexample, the
-                           counterexample is refined to make sure it is a
-                           counterexample for the actual (not the abstracted)
-                           problem
+<pre><code class="language-plain">Usage: hevm equivalence [--code-a TEXT] [--code-b TEXT] [--code-a-file STRING]
+                        [--code-b-file STRING] [--sig TEXT] [--arg STRING]...
+                        [--calldata TEXT] [--smttimeout NATURAL]
+                        [--max-iterations INTEGER] [--solver TEXT]
+                        [--num-solvers NATURAL] ...
 </code></pre>
 <p>Symbolically execute both the code given in <code>--code-a</code> and <code>--code-b</code> and try
-to prove equivalence between their outputs and storages. Extracting bytecode
-from solidity contracts can be done via, e.g.:</p>
-<pre><code>hevm equivalence \
-    --code-a $(solc --bin-runtime &quot;contract1.sol&quot; | tail -n1) \
-    --code-b $(solc --bin-runtime &quot;contract2.sol&quot; | tail -n1)
+to prove equivalence between their outputs and storages. For a full listing of
+options, see <code>hevm equivalence --help</code>. For common options, see
+<a href="./common-options.html">here</a>.</p>
+<h2 id="simple-example-usage-1"><a class="header" href="#simple-example-usage-1">Simple example usage</a></h2>
+<p>Let's set contract1.sol to:</p>
+<pre><code class="language-solidity">contract MyContract {
+  mapping (address =&gt; uint) balances;
+  function my_adder(address recv, uint amt) public {
+    if (balances[recv] + amt &gt;= 100) { revert(); }
+    balances[recv] += amt;
+  }
+}
 </code></pre>
+<p>And let's set contract2.sol to:</p>
+<pre><code class="language-solidity">contract MyContract {
+  mapping (address =&gt; uint) balances;
+  function my_adder(address recv, uint amt) public {
+    if (balances[recv] + amt &gt;= 100) { revert(); }
+    balances[recv] += amt/2;
+    balances[recv] += amt/2;
+  }
+}
+</code></pre>
+<p>Then we can check if they are equivalent by running:</p>
+<pre><code class="language-shell">solc --bin-runtime "contract1.sol" | tail -n1 &gt; a.bin
+solc --bin-runtime "contract2.sol" | tail -n1 &gt; b.bin
+hevm equivalence --code-a-file a.bin --code-b-file b.bin
+</code></pre>
+<h2 id="calldata-size-limits"><a class="header" href="#calldata-size-limits">Calldata size limits</a></h2>
 <p>If <code>--sig</code> is given, calldata is assumed to take the form of the function
-given. If left out, calldata is a fully abstract buffer of at most 256 bytes.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="hevm-exec"><a class="header" href="#hevm-exec"><code>hevm exec</code></a></h1>
-<p>Run an EVM computation using specified parameters, using an interactive debugger when <code>--debug</code> flag is given.</p>
-<pre><code>Usage: hevm exec [--code TEXT] [--calldata TEXT] [--address ADDR]
-                 [--caller ADDR] [--origin ADDR] [--coinbase ADDR]
-                 [--value W256] [--nonce WORD64] [--gas WORD64] [--number W256]
-                 [--timestamp W256] [--basefee W256] [--priority-fee W256]
-                 [--gaslimit WORD64] [--gasprice W256] [--create]
-                 [--maxcodesize W256] [--prev-randao W256] [--chainid W256]
-                 [--debug] [--trace] [--rpc TEXT] [--block W256] [--root STRING]
-                 [--project-type PROJECTTYPE]
-
-Available options:
-  -h,--help                Show this help text
-  --code TEXT              Program bytecode
-  --calldata TEXT          Tx: calldata
-  --address ADDR           Tx: address
-  --caller ADDR            Tx: caller
-  --origin ADDR            Tx: origin
-  --coinbase ADDR          Block: coinbase
-  --value W256             Tx: Eth amount
-  --nonce WORD64           Nonce of origin
-  --gas WORD64             Tx: gas amount
-  --number W256            Block: number
-  --timestamp W256         Block: timestamp
-  --basefee W256           Block: base fee
-  --priority-fee W256      Tx: priority fee
-  --gaslimit WORD64        Tx: gas limit
-  --gasprice W256          Tx: gas price
-  --create                 Tx: creation
-  --maxcodesize W256       Block: max code size
-  --prev-randao W256       Block: prevRandao
-  --chainid W256           Env: chainId
-  --debug                  Debug printing of internal behaviour
-  --trace                  Dump trace
-  --rpc TEXT               Fetch state from a remote node
-  --block W256             Block state is be fetched from
-  --root STRING            Path to project root directory (default: . )
-  --project-type PROJECTTYPE
-                           Is this a Foundry or DappTools project (default:
-                           Foundry)
+given. If <code>--calldata</code> is provided, a specific, concrete calldata is used. If
+neither is provided, a fully abstract calldata of at most <code>2**64</code> byte is
+assumed. Note that a <code>2**64</code> byte calldata would go over the gas limit, and
+hence should cover all meaningful cases. You can limit the buffer size via
+<code>--max-buf-size</code>, which sets the exponent of the size, i.e. 10 would limit the
+calldata to <code>2**10</code> bytes.</p>
+<h2 id="what-constitutes-equivalence"><a class="header" href="#what-constitutes-equivalence">What constitutes equivalence</a></h2>
+<p>The equivalence checker considers two contracts equivalent if given the
+same calldata they:</p>
+<ul>
+<li>return the same value</li>
+<li>have the same storage</li>
+<li>match on the success/failure of the execution
+Importantly, logs are <em>not</em> considered in the equivalence check. Hence,
+it is possible that two contracts are considered equivalent by <code>hevm equivalence</code> but
+they emit different log items. Furthermore, gas is explicitly not considered,
+as in many cases, the point of the equivalence check is to ensure that the
+contracts are functionally equivalent, but one of them is more gas efficient.</li>
+</ul>
+<p>For example, two contracts that are:</p>
+<pre><code>PUSH1 3
 </code></pre>
-<p>Minimum required flags: either you must provide <code>--code</code> or you must both pass
-<code>--rpc</code> and <code>--address</code>. </p>
+<p>And</p>
+<pre><code>PUSH1 4
+</code></pre>
+<p>Are considered <em>equivalent</em>, because they don't put anything in the return
+data, are not different in their success/fail attribute, and don't touch
+storage. However, these two are considered different:</p>
+<pre><code>PUSH1 3
+PUSH1 0x20
+MSTORE
+PUSH1 0x40
+PUSH1 0x00
+RETURN
+</code></pre>
+<p>and:</p>
+<pre><code>PUSH1 4
+PUSH1 0x20
+MSTORE
+PUSH1 0x40
+PUSH1 0x00
+RETURN
+</code></pre>
+<p>Since one of them returns a 3 and the other a 4. We also consider contracts different when
+they differ in success/fail. So these two contracts:</p>
+<pre><code>PUSH1 0x00
+PUSH1 0x00
+RETURN
+</code></pre>
+<p>and:</p>
+<pre><code>PUSH1 0x00
+PUSH1 0x00
+REVERT
+</code></pre>
+<p>Are considered different, as one of them reverts (i.e. fails) and the other
+succeeds.</p>
+<h2 id="creation-code-equivalence"><a class="header" href="#creation-code-equivalence">Creation code equivalence</a></h2>
+<p>If you want to check the equivalence of not just the runtime code, but also the
+creation code of two contracts, you can use the <code>--creation</code> flag.  For example
+the following two contracts compare equal when compared with <code>--create</code> flag.
+Let's set the first contract to create1.sol:</p>
+<pre><code class="language-solidity">contract C {
+  uint private immutable NUMBER;
+  constructor(uint a) {
+    NUMBER = 2;
+  }
+  function stuff(uint b) public returns (uint256) {
+    unchecked {return 2+NUMBER+b;}
+  }
+}
+</code></pre>
+<p>And the second contract to create2.sol:</p>
+<pre><code class="language-solidity">contract C {
+  uint private immutable NUMBER;
+  constructor(uint a) {
+    NUMBER = 4;
+  }
+  function stuff(uint b) public returns (uint256) {
+    unchecked {return NUMBER+b;}
+  }
+}
+</code></pre>
+<p>And let's compare them via --create:</p>
+<pre><code class="language-shell">solc --bin create1.sol | tail -n1 &gt; create1.bin
+solc --bin create2.sol | tail -n1 &gt; create2.bin
+hevm equivalence --code-a-file create1.bin --code-b-file create2.bin --create
+</code></pre>
+<p>Notice that we used <code>--bin</code> and not <code>--bin-runtime</code> for solc here. Also note that
+in case <code>NUMBER</code> is declared <code>public</code>, the two contracts will not be considered
+equivalent, since solidity will generate a getter for <code>NUMBER</code>, which will
+return 2/4 respectively.</p>
+<h2 id="further-reading-2"><a class="header" href="#further-reading-2">Further reading</a></h2>
+<p>For a tutorial on how to use <code>hevm equivalence</code>, see the <a href="symbolic-execution-tutorial.html">equivalence checking
+tutorial</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="hevm-exec"><a class="header" href="#hevm-exec"><code>hevm exec</code></a></h1>
+<p>Run an EVM computation using specified parameters.</p>
+<pre><code class="language-plain">Usage: hevm exec [--code ARG] [--code-file ARG] [--project-type ARG] [--create]
+                 [--json-trace] [--address ARG] [--caller ARG] [--origin ARG]
+                 [--coinbase ARG] [--value ARG] [--nonce ARG] [--gas ARG]
+                 [--number ARG] [--timestamp ARG] [--basefee ARG]
+                 [--priority-fee ARG] [--gaslimit ARG] [--gasprice ARG]
+                 [--maxcodesize ARG] [--prev-randao ARG] [--chainid ARG]
+                 [--rpc ARG] [--block ARG] [--ask-smt-iterations ARG]
+                 [--loop-detection-heuristic ARG] [--no-decompose]
+                 [--solver ARG] [--debug] [--calldata ARG] [--trace]
+                 [--verb ARG] [--root ARG] [--assertion-type ARG]
+                 [--solver-threads ARG] [--smttimeout ARG] [--smtdebug]
+                 [--dump-unsolved ARG] [--num-solvers ARG] [--num-cex-fuzz ARG]
+                 [--max-iterations ARG] [--promise-no-reent]
+                 [--max-buf-size ARG] [--max-width ARG] [--max-depth ARG]
+                 [--no-simplify] [--only-deployed]
+</code></pre>
+<p>Concretely execute a given EVM bytecode with the specified parameters. Minimum
+required flags: either you must provide <code>--code</code> or you must both pass <code>--rpc</code>
+and <code>--address</code>. For a full listing of options, see <code>hevm exec --help</code>.</p>
 <p>If the execution returns an output, it will be written
 to stdout. Exit code indicates whether the execution was successful or
 errored/reverted.</p>
-<p>Simple example usage:</p>
-<pre><code>hevm exec --code 0x647175696e6550383480393834f3 --gas 0xff
-&quot;Return: 0x647175696e6550383480393834f3&quot;
+<h2 id="simple-example-usage-2"><a class="header" href="#simple-example-usage-2">Simple example usage</a></h2>
+<pre><code class="language-shell">$ hevm exec --code 0x647175696e6550383480393834f3 --gas 0xff
+"Return: 0x647175696e6550383480393834f3"
 </code></pre>
 <p>Which says that given the EVM bytecode <code>0x647175696e6550383480393834f3</code>, the Ethereum
 Virtual Machine will put <code>0x647175696e6550383480393834f3</code> in the RETURNDATA.</p>
 <p>To execute a mainnet transaction:</p>
-<pre><code># install seth as per
-# https://github.com/makerdao/developerguides/blob/master/devtools/seth/seth-guide/seth-guide.md
-$ export ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_API_KEY_HERE
+<pre><code class="language-shell">$ export ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_API_KEY_HERE
 $ export TXHASH=0xd2235b9554e51e8ff5b3de62039d5ab6e591164b593d892e42b2ffe0e3e4e426
-hevm exec --caller $(seth tx $TXHASH from) --address $(seth tx $TXHASH to) \
-    --calldata $(seth tx $TXHASH input) --rpc $ETH_RPC_URL \
-    --block $(($(seth tx $TXHASH blockNumber)-1)) --gas $(seth tx $TXHASH gas)
+hevm exec --caller $(cast tx $TXHASH from) --address $(cast tx $TXHASH to) \
+    --calldata $(cast tx $TXHASH input) --rpc $ETH_RPC_URL \
+    --block $(($(cast tx $TXHASH blockNumber)-1)) --gas $(cast tx $TXHASH gas)
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="common-options"><a class="header" href="#common-options">Common options</a></h1>
+<p>The subcommands of hevm present a number
+of common options. Here, we document these options in detail.</p>
+<h2 id="maximum-buffer-size---max-buf-size"><a class="header" href="#maximum-buffer-size---max-buf-size">Maximum Buffer Size, <code>--max-buf-size</code></a></h2>
+<p>The buffers in hevm are limited to a maximum size of 2^N bytes, where N is by
+default 64, but adjustable via the <code>--max-buf-size</code> flag. This helps to prevent
+the system from creating buffers that are too large and would exceed the gas
+limit. Limiting this value further to e.g. 20 can help to force the system to
+generate counterexamples that are easier to examine and understand.</p>
+<h2 id="choice-of-solver---solver"><a class="header" href="#choice-of-solver---solver">Choice of Solver, <code>--solver</code></a></h2>
+<p>hevm can use any SMT solver that supports the AUFBV theory and incremental
+solving. Currently, z3, cvc5, and bitwuzla's interfaces are implemented. While
+any of these solvers work, we recommend using bitwuzla as it is in general
+extremely fast, almost always significantly faster than e.g. z3.</p>
+<h2 id="number-of-solvers---num-solvers"><a class="header" href="#number-of-solvers---num-solvers">Number of Solvers, <code>--num-solvers</code></a></h2>
+<p>hevm can run multiple solvers in parallel and will run as many solvers as it
+detects the number of CPU cores on the machine. However, in some cases, that
+may lead to memory outs, in case the solver happens to get queries that are
+memory-intensive. In these cases, the number of solvers can be limited to a a
+specific (low) number via the <code>--num-solvers</code> flag.</p>
+<h2 id="promising-no-reentrancy---promise-no-reent"><a class="header" href="#promising-no-reentrancy---promise-no-reent">Promising no reentrancy, <code>--promise-no-reent</code></a></h2>
+<p>hevm can be instructed to assume that no reentrancy will occur during the
+execution of the contract. This is currently neccessary to fully explore
+certain contracts. This is because value transfer is usually done via a <code>CALL</code>,
+which can be reentrant. By promising no reentrancy, the system can assume that
+no reentrancy will occur and can explore the contract more fully.</p>
+<h2 id="timeout-for-smt-queries---smttimeout"><a class="header" href="#timeout-for-smt-queries---smttimeout">Timeout for SMT queries, <code>--smttimeout</code></a></h2>
+<p>Some queries take too long. With a timeout, we ensure that hevm eventually
+terminates. However, endstates where the timeout was reached are considered
+inditerminate, and will lead to a <code>WARNING</code> in the output. It is worthwhile
+trying to switch to a different SMT solver such as bitwuzla, or increasing the
+timeout if this happens.</p>
+<h2 id="loop-iteration-limit---ask-smt-iterations"><a class="header" href="#loop-iteration-limit---ask-smt-iterations">Loop Iteration Limit, <code>--ask-smt-iterations</code></a></h2>
+<p>Loops in the code cause a challenge to symbolic execution framework. In order
+to not run indefinitely, hevm will only explore a certain number of iterations
+of a loop before consideing abandoning the exploration of that branch. This
+number can be set via the <code>--ask-smt-iterations</code> flag.</p>
+<h2 id="maximum-branch-width-limit---max-width"><a class="header" href="#maximum-branch-width-limit---max-width">Maximum Branch Width Limit, <code>--max-width</code></a></h2>
+<p>Limits the number of potential concrete values that are explored in case a
+symbolic value is encountered, thus limiting branching width. For example, if a
+JUMP instruction is called with a symbolic expression, the system will explore
+all possible valid jump destinations, which may be too many. This option limits
+the branching factor in these cases. Default is 100.</p>
+<p>If there are more than the given maximum number of possible values, the system
+will try to deal with the symbolic value, if possible, e.g. via
+over-approximation. If over-approximation is not possible, symbolic execution
+will terminate with a <code>Partial</code> node, which is often displayed as "Unexpected
+Symbolic Arguments to Opcode" to the user when e.g. running <code>hevm test</code>.</p>
+<h2 id="maximum-branch-depth-limit---max-depth"><a class="header" href="#maximum-branch-depth-limit---max-depth">Maximum Branch Depth Limit, <code>--max-depth</code></a></h2>
+<p>Limits the number of branching points on all paths during symbolic execution.
+This is helpful to prevent the exploration from running for too long. Useful in
+scenarios where you use e.g. both symbolic execution and fuzzing, and don't
+want the symbolic execution to run for too long. It will often read to
+WARNING-s related to <code>Branches too deep at program counter</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="general-overview"><a class="header" href="#general-overview">General overview</a></h1>
+<p>To get an idea about what <code>hevm</code> is, see <a href="https://link.springer.com/content/pdf/10.1007/978-3-031-65627-9_22.pdf?pdf=inline%20link">CAV'24 paper</a>.
+You can also check out a few <a href="https://github.com/msooseth/hevm-presentation">presentations</a> by <a href="https://github.com/msooseth">@msooseth</a>.</p>
+<h1 id="debugging"><a class="header" href="#debugging">Debugging</a></h1>
+<h2 id="printf-style-debugging"><a class="header" href="#printf-style-debugging">Printf-style debugging</a></h2>
+<p>Haskell offers a way to print messages anywhere in the code with <a href="https://hackage.haskell.org/package/base-4.20.0.1/docs/Debug-Trace.html">Debug.Trace</a>.
+The simplest is <code>trace</code> which takes a string and a value and returns the same value while printing the string.
+For example</p>
+<pre><code class="language-haskell">add x y = trace "Hello from add!" (x + y)
+</code></pre>
+<h1 id="testing"><a class="header" href="#testing">Testing</a></h1>
+<p><code>hevm</code> uses <a href="https://hackage.haskell.org/package/tasty-1.5/docs/Test-Tasty.html">Tasty</a> framework for running tests, including <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11/docs/Test-Tasty-QuickCheck.html"><code>QuickCheck</code></a> for property-based testing. It also uses <a href="https://github.com/Bodigrim/tasty-bench"><code>tasty-bench</code></a> for benchmarking.</p>
+<h2 id="running-tests"><a class="header" href="#running-tests">Running tests</a></h2>
+<p>The basic command to run the tests is:</p>
+<pre><code>cabal run test
+</code></pre>
+<p>For development, it might be beneficial to pass <code>devel</code> flag:</p>
+<pre><code>cabal run -f devel test
+</code></pre>
+<p>This should enable parallel compilation and test runs (see the config file <code>hevm.cabal</code>).</p>
+<p>Additional parameters can be passed to the test runner after <code>--</code>. For example <code>cabal run test -- --help</code> will list all the additional parameters.</p>
+<p>Some of the interesting options are <code>-p &lt;PATTERN&gt;</code> to filter only some of the tests and <code>--quickcheck-tests &lt;NUMBER&gt;</code> to control how many tests quickcheck will generate for each property test.</p>
+<h2 id="on-property-based-testing"><a class="header" href="#on-property-based-testing">On property-based testing</a></h2>
+<p>There are a few ways to control how many tests Quickcheck will generate per property.
+By default, it generates 100 tests (satisfying the precondition).
+This can be controlled by <code>maxSuccess</code> argument passed to Quickcheck, or, in Tasty framework, using <code>localOption (QuickCheckTests &lt;N&gt;)</code>.
+Passing <code>--quickcheck-tests &lt;N&gt;</code> to the binary will change this value to <code>&lt;N&gt;</code>.
+This value can be dynamically adjusted for a test group or a specific test.
+For example, instead of <code>localOption</code> it is possible to use <code>adjustOption</code> for a test group.
+The following ensures that for the following test group, the maximal value of the <code>QuickCheckTests</code> option is <code>50</code> (but if the current value is lower, it will be left unchanged).</p>
+<pre><code>adjustOption (\(Test.Tasty.QuickCheck.QuickCheckTests n) -&gt; Test.Tasty.QuickCheck.QuickCheckTests (min n 50))
+</code></pre>
+<p>Similarly, the <code>maxSuccess</code> value can be modified for a single test. The following sets the number of tests generated to 20 for the particular test:</p>
+<pre><code>testProperty &lt;property_name&gt; $ withMaxSuccess 20 $ ...
+</code></pre>
+<h2 id="running-benchmarks"><a class="header" href="#running-benchmarks">Running benchmarks</a></h2>
+<p>You can also measure and compare the performance across hevm versions using the benchmarks.
+<code>bench-perf</code> focuses on concrete execution performance, and <code>bench</code> is aimed at
+symbolic execution and solving. Refer to the tasty-bench documentation for more detailed
+usage information.</p>
+<pre><code class="language-plain"># Measure time and memory usage
+$ cabal run bench-perf -- +RTS -T
+
+# Collect timings for a base version
+$ cabal run bench-perf  -- --csv baseline.csv
+
+# Perform some changes on the hevm code
+# ...
+
+# Benchmark changed code and compare with baseline
+$ cabal run bench-perf  -- --baseline baseline.csv
+</code></pre>
+<h1 id="profiling"><a class="header" href="#profiling">Profiling</a></h1>
+<h2 id="profiling-haskell-code"><a class="header" href="#profiling-haskell-code">Profiling Haskell code</a></h2>
+<p><strong>NOTE:</strong> Most of the time will likely be spent in the solver, and that will not show up when profiling Haskell application.</p>
+<p>In order to build the application with profiling information, we need to pass <code>--enable-profiling</code> to <code>cabal</code>.
+If we want to profile the test suite, we could run</p>
+<pre><code class="language-bash">cabal run test --enable-profiling -- +RTS -p
+</code></pre>
+<p>Note that <code>+RTS</code> means the next arguments will be passed to GHC and -p instructs the program to create a time profile report.
+This report is written into the <code>.prof</code> file.
+If we want to pass arguments to our executable, we have to indicate this with <code>-RTS</code>, for example, to profile run of only some tests, we would use</p>
+<pre><code class="language-bash">cabal run test --enable-profiling -- +RTS -p -RTS -p &lt;test_to_profile&gt;
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="steppers--interpreters"><a class="header" href="#steppers--interpreters">Steppers &amp; Interpreters</a></h1>
+<p>The core EVM semantics in hevm can be found in <code>EVM.hs</code>. EVM state is contained
+in the <code>VM</code> record, and the <code>exec1</code> function executes a single opcode inside
+the monad <code>type EVM a = State VM a</code>.</p>
+<p>The core semantics are pure, and should information from the outside world be
+required to continue execution (RPC queries or SMT queries),
+execution will halt, and the <code>result</code> field of the VM will be an instance of
+<code>VMFailure (Query _)</code>.</p>
+<p>Multiple steps of EVM execution are orchestrated via interpreters for a meta
+language. Programs in the meta language are called Steppers. The instructions
+in the meta language can be found in <code>Stepper.hs</code>.</p>
+<p>There can potentially be many different interpreters with different features. Currently,
+we provide a concrete and a symbolic interpreter. Interpreters can
+handle Queries in different ways, for example in the symbolic interpreter, both
+sides of a branch point will be explored, while in the concrete interpreter,
+such branching is not permitted.</p>
+<p>Interpreters are parametrized by a <code>Fetcher</code> that can handle RPC and SMT
+queries, and can be instantiated with fetchers that could have different
+fetching strategies (e.g. caching). Interpreters execute Steppers and use their
+Fetcher to handle any Queries that need to be resolved.</p>
+<p>This architecture is very modular and pluggable, and allows the core semantics
+to be shared between different interpreters, as well as the reuse of steppers
+between different interpreters, making it easy to e.g. share the same test
+execution strategy between concrete and symbolic interpreters.</p>
+<pre class="mermaid">graph LR
+    subgraph meta-language
+    A[Stepper]
+    end
+    subgraph interpreters
+    A --&gt; B[Concrete]
+    A --&gt; C[Symbolic]
+    end
+    subgraph fetchers
+    F[Fetch.hs]
+    B --&gt; F
+    C --&gt; F
+    end
+    subgraph EVM Semantics
+    G[EVM.hs]
+    B --&gt; G
+    C --&gt; G
+    end
+</pre>
+<h1 id="expr"><a class="header" href="#expr">Expr</a></h1>
+<p>The symbolic execution features in hevm are built using a custom IR,
+imaginatively named <code>Expr</code>. This is a summarized trace semantics of a given
+EVM program.</p>
+<p>One important principle is that of local context: e.g. each term representing a
+read from a Buf/Storage will always contain a snapshot of the state of the
+buffer/store at the time the read occurred. This ensures that all context
+relevant to a given operation is contained within the term that represents that
+operation, and allows subsequent analysis to be stateless.</p>
+<p>Expressions in this language can have the following types:</p>
+<ul>
+<li><code>End</code>: control flow</li>
+<li><code>Word</code>: a 256 bit word (a stack item)</li>
+<li><code>Byte</code>: a single byte</li>
+<li><code>Buf</code>: a byte array (used for calldata, memory and returndata)</li>
+<li><code>Storage</code>: contract storage</li>
+<li><code>Logs</code>: EVM logs</li>
+</ul>
+<h2 id="control-flow"><a class="header" href="#control-flow">Control Flow</a></h2>
+<p>An EVM program is represented by an <code>[Expr End]</code>, which is a list of all
+possible end states for a program. As an example the following
+two <code>Expr End</code>-s encode a program that branches based on the equality of two symbolic
+words ("a" and "b"), and returns if they are equal and reverts if they are not:</p>
+<pre><code class="language-haskell">[ Success [PEq (Var "a") (Var "b")] ...,
+, Failure [PNeg (PEq (Var "a") (Var "b"))] ...]
+</code></pre>
+<h2 id="buffers"><a class="header" href="#buffers">Buffers</a></h2>
+<p>Memory, calldata, and returndata are all represented as a Buf. Semantically
+speaking a Buf is a byte array with of size 2^256.</p>
+<p>Bufs have three base constructors:</p>
+<ul>
+<li>AbstractBuf:    all elements are fully abstract values</li>
+<li>ConcreteBuf bs: all elements past (length bs) are zero</li>
+</ul>
+<p>Bufs can be read from with:</p>
+<ul>
+<li>ReadByte idx buf: read the byte at idx from buf</li>
+<li>ReadWord idx buf: read the byte at idx from buf</li>
+</ul>
+<p>Bufs can be written to with:</p>
+<ul>
+<li>WriteByte idx val buf: write val to idx in buf</li>
+<li>WriteWord idx val buf: write val to idx in buf</li>
+<li>CopySlice srcOffset dstOffset size src dst:
+overwrite dstOffset -&gt; dstOffset + size in dst with srcOffset -&gt; srcOffset + size from src</li>
+</ul>
+<p>e.g. the following Buf expression represents an abi encoded call to <code>foo(uint256 a)</code>:</p>
+<pre><code class="language-haskell">(WriteWord (Lit 0x4) (Var "a")
+(WriteByte (Lit 0x3) (LitByte 56)
+(WriteByte (Lit 0x2) (LitByte 189)
+(WriteByte (Lit 0x1) (LitByte 190)
+(WriteByte (Lit 0x0) (LitByte 47)
+(AbstractBuf "txdata")))))
+</code></pre>
+<p>This represents calldata of the form:</p>
+<pre><code>-----------------------------------------------------------------------
+| &lt;function selector&gt; | &lt;symbolic word&gt; | arbitrary symbolic data.... |
+-----------------------------------------------------------------------
+</code></pre>
+<p>Note that a Buf expression contains a copy of all historical writes, meaning
+that it is possible to write multiple times to the same location. In this case
+only the topmost write is relevant. This allows us to mix symbolic and concrete
+writes to the same buffer.</p>
+<h2 id="storage-1"><a class="header" href="#storage-1">Storage</a></h2>
+<p>Storage expressions are similar, but instead of writing regions of bytes, we
+write a word to a particular key in a given addresses storage. Note that as
+with a Buf, writes can be sequenced on top of concrete, empty and fully
+abstract starting states.</p>
+<p>As with Bufs, Storage expressions contain a full history of all previous writes.</p>
+<p>For example the following expression represents a write of a symbolic word "c"
+to slot 2 for the zero address followed by a write of 1 to the slot at the
+symbolic location "b" for the zero address. These writes are sequenced on top
+of an <code>EmptyStore</code> meaning all other storage locations are held to be 0.</p>
+<pre><code class="language-haskell">(SStore (Lit 0) (Var "b") (Lit 1)
+(SStore (Lit 0) (Lit 2) (Var "c")
+EmptyStore))
+</code></pre>
+<h2 id="logs"><a class="header" href="#logs">Logs</a></h2>
+<p>Logs are also represented as a sequence of writes, but unlike Buf and Storage
+expressions, Log writes are always sequenced on an empty starting point, and
+overwriting is not allowed.</p>
+<h1 id="symbolic-execution"><a class="header" href="#symbolic-execution">Symbolic Execution</a></h1>
+<p>During symbolic execution all possible branches of the program are explored
+symbolically. Reachability analysis is performed at this stage only if needed
+for loop unrolling. This produces an Expr End. As an example consider the
+following program:</p>
+<pre><code class="language-solidity">contract MyContract {
+  mapping(uint =&gt; uint) items;
+  function test(uint val1) public {
+    require(val1 &gt; 10);
+    unchecked {
+      items[4] = val1+1;
+      assert(items[4] &gt; 10);
+    }
+  }
+}
+</code></pre>
+<p>This decompiles into the following Expr End:
+<img src="expr.png" alt="Body frame" /></p>
+<p>For more details, see our research paper on hevm on open access
+<a href="https://link.springer.com/content/pdf/10.1007/978-3-031-65627-9_22.pdf?pdf=inline+link">research
+paper</a>
+as presented at CAV 2024, <a href="https://github.com/msooseth/hevm-presentation/blob/main/HEVM-presentation%20CAV%2026th%20July%202024.pdf">presentation
+here</a></p>
 
                     </main>
 
@@ -1061,12 +1857,15 @@ hevm exec --caller $(seth tx $TXHASH from) --address $(seth tx $TXHASH to) \
 
         <!-- Custom JS scripts -->
         <script src="solidity.min.js"></script>
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
 
         <script>
         window.addEventListener('load', function() {
             window.setTimeout(window.print, 100);
         });
         </script>
+
 
     </div>
     </body>

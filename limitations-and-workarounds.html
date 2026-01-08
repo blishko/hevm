@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Concrete execution - hevm</title>
+        <title>Limitations and Workarounds - hevm</title>
 
 
         <!-- Custom HTML head -->
@@ -148,7 +148,7 @@
                         <a href="https://github.com/argotorg/hevm" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="hhttps://github.com/argotorg/hevm/edit/main/src/exec.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                        <a href="hhttps://github.com/argotorg/hevm/edit/main/src/limitations-and-workarounds.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -182,53 +182,111 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="hevm-exec"><a class="header" href="#hevm-exec"><code>hevm exec</code></a></h1>
-<p>Run an EVM computation using specified parameters.</p>
-<pre><code class="language-plain">Usage: hevm exec [--code ARG] [--code-file ARG] [--project-type ARG] [--create]
-                 [--json-trace] [--address ARG] [--caller ARG] [--origin ARG]
-                 [--coinbase ARG] [--value ARG] [--nonce ARG] [--gas ARG]
-                 [--number ARG] [--timestamp ARG] [--basefee ARG]
-                 [--priority-fee ARG] [--gaslimit ARG] [--gasprice ARG]
-                 [--maxcodesize ARG] [--prev-randao ARG] [--chainid ARG]
-                 [--rpc ARG] [--block ARG] [--ask-smt-iterations ARG]
-                 [--loop-detection-heuristic ARG] [--no-decompose]
-                 [--solver ARG] [--debug] [--calldata ARG] [--trace]
-                 [--verb ARG] [--root ARG] [--assertion-type ARG]
-                 [--solver-threads ARG] [--smttimeout ARG] [--smtdebug]
-                 [--dump-unsolved ARG] [--num-solvers ARG] [--num-cex-fuzz ARG]
-                 [--max-iterations ARG] [--promise-no-reent]
-                 [--max-buf-size ARG] [--max-width ARG] [--max-depth ARG]
-                 [--no-simplify] [--only-deployed]
+                        <h1 id="limitations-and-workarounds"><a class="header" href="#limitations-and-workarounds">Limitations and Workarounds</a></h1>
+<p>Symbolic execution in general, and hevm in particular, have a number of known
+limitations. Many of these limitations can be worked around without too much
+effort. This document describes some of the most common limitations and
+workarounds.</p>
+<h2 id="loops-and-recursion"><a class="header" href="#loops-and-recursion">Loops and recursion</a></h2>
+<p>The most important issue related to symbolic execution is to do with loops and
+recursion. For example, the following code is hard to deal with in a symbolic
+context:</p>
+<pre><code class="language-solidity">function loop(uint n) {
+  for(uint i = 0; i &lt; n; i++) {
+    mystate[i]++;
+  }
+}
 </code></pre>
-<p>Concretely execute a given EVM bytecode with the specified parameters. Minimum
-required flags: either you must provide <code>--code</code> or you must both pass <code>--rpc</code>
-and <code>--address</code>. For a full listing of options, see <code>hevm exec --help</code>.</p>
-<p>If the execution returns an output, it will be written
-to stdout. Exit code indicates whether the execution was successful or
-errored/reverted.</p>
-<h2 id="simple-example-usage"><a class="header" href="#simple-example-usage">Simple example usage</a></h2>
-<pre><code class="language-shell">$ hevm exec --code 0x647175696e6550383480393834f3 --gas 0xff
-"Return: 0x647175696e6550383480393834f3"
+<p>When such a function is called, and <code>n</code> is a symbolic parameter (e.g. parameter
+to a function <code>prove_</code>, such as <code>prove_correct(uint n)</code>), hevm would need to
+create a new execution path for each potential value of <code>n</code>, which can be very
+large. The same principle applies to recursion, where the depth of the
+recursion may be unbounded or bounded only by a potentially very large number.</p>
+<p>Hence, hevm only explores loops and recursions up to fixed depth <code>k</code>, a
+parameter that can be adjusted from the command line via the <code>--max-iterations k</code> parameter. Whenever the limit is hit, hevm warns of the incomplete exploration:</p>
+<pre><code class="language-shell">WARNING: hevm was only able to partially explore the call prefix 0x[...] due to the following issue(s):
+  - Max Iterations Reached in contract: 0x[...] pc: [...]
 </code></pre>
-<p>Which says that given the EVM bytecode <code>0x647175696e6550383480393834f3</code>, the Ethereum
-Virtual Machine will put <code>0x647175696e6550383480393834f3</code> in the RETURNDATA.</p>
-<p>To execute a mainnet transaction:</p>
-<pre><code class="language-shell">$ export ETH_RPC_URL=https://mainnet.infura.io/v3/YOUR_API_KEY_HERE
-$ export TXHASH=0xd2235b9554e51e8ff5b3de62039d5ab6e591164b593d892e42b2ffe0e3e4e426
-hevm exec --caller $(cast tx $TXHASH from) --address $(cast tx $TXHASH to) \
-    --calldata $(cast tx $TXHASH input) --rpc $ETH_RPC_URL \
-    --block $(($(cast tx $TXHASH blockNumber)-1)) --gas $(cast tx $TXHASH gas)
+<p>In general, the workaround suggested is to try to write code without loops, if
+possible, or to have a limit on the number of iterations. For example, by using
+<code>max(k,n)</code> instead of <code>n</code> in the loop condition, where <code>k</code> is a fixed number.
+Unbounded loops are a problem for digital contracts, as they may be forced by
+an attacker to exhaust gas, thereby potentially e.g. deadlocking the contract.
+This can lock in (large) funds, which can be a very serious issue. Hence,
+limiting loop iterations is a good practice in general -- not only for symbolic
+execution.</p>
+<p><strong>Best Practices</strong>:</p>
+<ul>
+<li>Try to write code without loops, if possible.</li>
+<li>Use <code>max(k,n)</code> instead of <code>n</code> in the loop condition, where <code>k</code> is a fixed number.</li>
+<li>Avoid unbounded loops to prevent potential gas exhaustion attacks</li>
+</ul>
+<h2 id="gas-costs"><a class="header" href="#gas-costs">Gas costs</a></h2>
+<p>Gas is hard to symbolically track, due to certain opcodes, such as SLOAD,
+having different cost depending on the parameters to the opcode. Many symbolic
+execution systems, including hevm, solve this by not fully tracking gas.
+This means that hevm may report that an assertion
+failure can occur through a particular execution trace, but that
+trace would cost more to execute than the allowable gas limit.</p>
+<p>In general, it is possible to check whether the issue can be hit by running the
+hevm-provided counterexample in a concrete execution setting, thereby filtering
+out false positives. However, it is strongly advisable to fix potential issues
+that are only guarded due to gas exhaustion, as they may become exploitable in
+the future, when gas costs change.</p>
+<p><strong>Best Practices</strong>:</p>
+<ul>
+<li>Don't rely on gas exhaustion as a security mechanism.</li>
+<li>Check potential issues by running the hevm-provided counterexample in a
+concrete execution setting.</li>
+</ul>
+<h2 id="symbolic-arguments-to-certain-evm-opcodes"><a class="header" href="#symbolic-arguments-to-certain-evm-opcodes">Symbolic arguments to certain EVM opcodes</a></h2>
+<p>When a symbolic argument is passed to an EVM opcode that hevm cannot deal with
+symbolically, an error is raised. There are number of such EVM opcodes, for
+example JUMP, JUMPI, CALL, CALLCODE, DELEGATECALL, STATICCALL, CREATE, CREATE2,
+SELFDESTRUCT, etc. If any of these are called with an argument that is
+symbolic, hevm raises an error, such as:</p>
+<pre><code class="language-shell">WARNING: hevm was only able to partially explore the call prefix 0x[...] due to the following issue(s):
+  - Attempting to transfer eth to a symbolic address that is not present in the state
 </code></pre>
+<p>There is no single workaround for this class of issues, as it depends on the
+specific circumstances of the code. In general, we suggest trying to concretize
+the call to the code, such that only what is truly needed to be symbolic is
+left symbolic. For example, you may be able to force partial concrete execution via
+<code>require()</code> statements, thereby concretizing the potential symbolic value. Similarly,
+dynamically computed JUMP destinations can be avoided via pre-computed jump tables, etc.</p>
+<p><strong>Best Practices</strong>:</p>
+<ul>
+<li>Use <code>require()</code> statements to concretize symbolic values</li>
+<li>Avoid dynamically computed jumps -- use pre-computed jump-tables, if neccesary</li>
+</ul>
+<h2 id="jumping-into-symbolic-code"><a class="header" href="#jumping-into-symbolic-code">Jumping into symbolic code</a></h2>
+<p>Jumping into symbolic code is not supported by hevm. This can happen when, e.g.
+a function creates a contract based on a symbolic value, and then jumps into
+the code of that contract. In these cases, you will get a warning like the
+following:</p>
+<pre><code class="language-shell">WARNING: hevm was only able to partially explore the call prefix 0x[...] due to the following issue(s):
+  - Encountered a jump into a potentially symbolic code region while executing initcode. pc: [...] jump dst: [...]
+</code></pre>
+<p>For these cases, we suggest concretizing the call that creates the contract,
+such that the bytecode created and later jumped to, is not symbolic.</p>
+<h2 id="setting-block-number"><a class="header" href="#setting-block-number">Setting block number</a></h2>
+<p>The <a href="https://book.getfoundry.sh/cheatcodes/roll?highlight=roll#roll">roll(uint256)
+cheatcode</a> can
+be used to set the block number in the current EVM state. However, it does not
+alter the block number that the RPC calls use. For that, one must use the
+<code>--number</code> command line option. Hence, it is not possible to dynamically change
+what block number the RPC calls fetch from, other than by restarting the hevm
+process with a different block number.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="equivalence.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="when-to-use.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="common-options.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="completeness-and-false-positives.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -238,11 +296,11 @@ hevm exec --caller $(cast tx $TXHASH from) --address $(cast tx $TXHASH to) \
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="equivalence.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="when-to-use.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="common-options.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="completeness-and-false-positives.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
